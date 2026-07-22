@@ -1,0 +1,250 @@
+﻿@model IEnumerable<JobNow.Models.Job>
+
+@{
+    ViewData["Title"] = "Tìm Việc";
+}
+
+<style>
+    body {
+        background-color: #F8FAFC;
+    }
+    /* Màu nền xám nhạt */
+    .search-banner {
+        background-color: #BED8FF;
+        padding: 40px 0;
+    }
+
+    .filter-sidebar {
+        background-color: white;
+        border-radius: 8px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .job-card {
+        background-color: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        transition: border-color 0.3s;
+    }
+
+        .job-card:hover {
+            border-color: #ff6b00;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+    .badge-tag {
+        background-color: #f1f5f9;
+        color: #475569;
+        font-weight: 500;
+    }
+
+    .badge-hot {
+        background-color: #000;
+        color: #fff;
+        font-size: 0.7rem;
+    }
+
+    .badge-new {
+        background-color: #ffedd5;
+        color: #ea580c;
+        font-size: 0.7rem;
+    }
+
+    .text-orange {
+        color: #ea580c;
+    }
+
+    .btn-apply {
+        background-color: #ea580c;
+        color: white;
+        font-weight: bold;
+    }
+
+        .btn-apply:hover {
+            background-color: #c2410c;
+            color: white;
+        }
+
+    .form-check-input:checked {
+        background-color: #ea580c;
+        border-color: #ea580c;
+    }
+</style>
+
+<!-- Banner Tìm Kiếm -->
+<div class="search-banner mb-5">
+    <div class="container">
+        <h2 class="fw-bold mb-4" style="color: #1e293b;">Tìm kiếm công việc mơ ước của bạn</h2>
+
+        <!-- Form Tìm Kiếm sẽ gửi keyword và location về JobController -->
+        <form method="get" asp-controller="Job" asp-action="Index" class="bg-white p-2 rounded shadow-sm d-flex align-items-center">
+            <div class="input-group border-end px-2" style="flex: 1;">
+                <span class="input-group-text bg-transparent border-0"><i class="text-muted">💼</i></span>
+                <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control border-0 shadow-none" placeholder="Chức danh, từ khóa...">
+            </div>
+            <div class="input-group px-2" style="flex: 1;">
+                <span class="input-group-text bg-transparent border-0"><i class="text-muted">📍</i></span>
+                <input type="text" name="location" value="@ViewBag.Location" class="form-control border-0 shadow-none" placeholder="Thành phố hoặc mã vùng...">
+            </div>
+            <button type="submit" class="btn btn-apply px-4 py-2 rounded">🔍 Tìm Kiếm</button>
+        </form>
+    </div>
+</div>
+
+<div class="container mb-5">
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger">Lỗi Database: @ViewBag.ErrorMessage</div>
+    }
+
+    <div class="row">
+        <!-- CỘT TRÁI: BỘ LỌC -->
+        <div class="col-md-3">
+            <div class="filter-sidebar">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Bộ lọc</h5>
+                    <a href="#" class="text-orange text-decoration-none small">Xóa tất cả</a>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="text-primary fw-bold small mb-3">KINH NGHIỆM</h6>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="exp1">
+                        <label class="form-check-label small" for="exp1">Thực tập sinh</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="exp2" checked>
+                        <label class="form-check-label small" for="exp2">Mới tốt nghiệp</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="exp3">
+                        <label class="form-check-label small" for="exp3">1 - 3 năm</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="exp4">
+                        <label class="form-check-label small" for="exp4">3 - 5 năm</label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="text-primary fw-bold small mb-3">LOẠI CÔNG VIỆC</h6>
+                    <span class="badge bg-orange text-white rounded-pill px-3 py-2 me-1 mb-2" style="background-color: #ea580c;">Toàn thời gian</span>
+                    <span class="badge badge-tag rounded-pill px-3 py-2 me-1 mb-2">Bán thời gian</span>
+                    <span class="badge badge-tag rounded-pill px-3 py-2 mb-2">Remote</span>
+                </div>
+
+                <div class="mb-4">
+                    <div class="mb-4">
+                        <h6 class="text-primary fw-bold small mb-3">MỨC LƯƠNG ($)</h6>
+                        <div class="d-flex align-items-center mb-2">
+                            <input type="number" name="minSalary" value="@ViewBag.MinSalary" class="form-control form-control-sm shadow-none" placeholder="Từ" style="border-radius: 6px;">
+                            <span class="mx-2 text-muted fw-bold">-</span>
+                            <input type="number" name="maxSalary" value="@ViewBag.MaxSalary" class="form-control form-control-sm shadow-none" placeholder="Đến" style="border-radius: 6px;">
+                        </div>
+                        <!-- Nút Lọc Áp dụng riêng cho bộ lọc trái -->
+                        <button type="submit" class="btn btn-sm btn-outline-secondary w-100 mt-2 fw-bold">Áp dụng lọc</button>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted mb-2">
+                        <span>$500</span>
+                        <span>$10,000+</span>
+                    </div>
+                    <input type="range" class="form-range" min="500" max="10000" id="salaryRange">
+                </div>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI: DANH SÁCH CÔNG VIỆC -->
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <p class="mb-0 text-muted">Hiển thị <strong class="text-dark">@ViewBag.TotalJobs</strong> công việc phù hợp</p>
+                <div class="d-flex align-items-center">
+                    <span class="small text-muted me-2 text-nowrap">Sắp xếp:</span>
+                    <select class="form-select form-select-sm border-0 fw-bold shadow-none" style="background-color: transparent;">
+                        <option>Mới nhất</option>
+                        <option>Lương cao nhất</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Vòng lặp in ra các thẻ Job -->
+            @foreach (var job in Model)
+            {
+                <div class="job-card p-4 mb-3">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="d-flex">
+                            <img src="@job.CompanyLogo" alt="Logo" class="rounded border me-3" style="width: 56px; height: 56px; object-fit: contain; padding: 4px;">
+                            <div>
+                                <h5 class="fw-bold mb-1 d-flex align-items-center">
+                                    @job.Title
+                                    @if (job.IsHot)
+                                    {
+                                        <span class="badge badge-hot ms-2 px-2 py-1">HOT</span>
+                                    }
+                                    @if (job.IsNew)
+                                    {
+                                        <span class="badge badge-new ms-2 px-2 py-1">MỚI</span>
+                                    }
+                                </h5>
+                                <p class="text-orange fw-bold small mb-0">@job.CompanyName</p>
+                            </div>
+                        </div>
+                        <a href="#" class="text-orange fs-5"><i class="bi bi-bookmark"></i> 🔖</a>
+                    </div>
+
+                    <div class="row text-muted small mb-3">
+                        <div class="col-md-3"><strong>💵 @job.Salary</strong></div>
+                        <div class="col-md-3">📍 @job.Location</div>
+                        <div class="col-md-3">🕒 @job.PostedAt</div>
+                        <div class="col-md-3 text-danger">⏳ Hạn: @job.Deadline.ToString("dd/MM/yyyy")</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            @if (!string.IsNullOrEmpty(job.Tags))
+                            {
+                                foreach (var tag in job.Tags.Split(','))
+                                {
+                                    <span class="badge badge-tag px-2 py-1 me-2">@tag.Trim()</span>
+                                }
+                            }
+                        </div>
+                        <a asp-controller="Job" asp-action="Details" asp-route-id="@job.Id" class="btn btn-apply px-4 py-1 text-decoration-none">Ứng tuyển ngay</a>
+                    </div>
+                </div>
+            }
+
+            <!-- Phân trang -->
+            <!-- Phân trang động -->
+            <nav class="mt-5">
+                <ul class="pagination justify-content-center">
+                    <!-- Nút Trở về (Lùi 1 trang) -->
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link border-0 text-dark fw-bold" asp-controller="Job" asp-action="Index" asp-route-page="@(ViewBag.CurrentPage - 1)" asp-route-keyword="@ViewBag.Keyword" asp-route-location="@ViewBag.Location">&laquo;</a>
+                        </li>
+                    }
+
+                    <!-- In ra các số trang -->
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item">
+                            <a class="page-link border-0 fw-bold mx-1 rounded @(i == ViewBag.CurrentPage ? "text-white" : "text-dark")"
+                               style="@(i == ViewBag.CurrentPage ? "background-color: #ea580c;" : "")"
+                               asp-controller="Job" asp-action="Index" asp-route-page="@i" asp-route-keyword="@ViewBag.Keyword" asp-route-location="@ViewBag.Location">@i</a>
+                        </li>
+                    }
+
+                    <!-- Nút Tới (Tiến 1 trang) -->
+                    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link border-0 text-dark fw-bold" asp-controller="Job" asp-action="Index" asp-route-page="@(ViewBag.CurrentPage + 1)" asp-route-keyword="@ViewBag.Keyword" asp-route-location="@ViewBag.Location">&raquo;</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>

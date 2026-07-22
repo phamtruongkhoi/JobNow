@@ -1,0 +1,272 @@
+﻿@model JobNow.Models.Job
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<style>
+    body {
+        background-color: #F8FAFC;
+    }
+
+    .job-card {
+        background-color: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 24px;
+    }
+
+    .btn-apply-lg {
+        background-color: #ff6b00;
+        color: white;
+        font-weight: bold;
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        width: 100%;
+        transition: 0.3s;
+    }
+
+        .btn-apply-lg:hover {
+            background-color: #e66000;
+            color: white;
+        }
+
+    .btn-outline {
+        border: 1px solid #cbd5e1;
+        color: #475569;
+        background: white;
+        border-radius: 6px;
+        padding: 8px;
+        flex: 1;
+        font-weight: 500;
+    }
+
+        .btn-outline:hover {
+            background-color: #f1f5f9;
+        }
+
+    .text-orange {
+        color: #ff6b00;
+    }
+
+    .bg-dark-blue {
+        background-color: #0f172a;
+    }
+
+    .section-title {
+        border-left: 4px solid #ff6b00;
+        padding-left: 10px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        font-size: 1.2rem;
+    }
+
+    .tag-stat {
+        background-color: #e2e8f0;
+        color: #334155;
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+    .tag-urgent {
+        background-color: #475569;
+        color: white;
+    }
+
+    ul.custom-bullet {
+        list-style-type: disc;
+        padding-left: 20px;
+        margin-top: 15px;
+    }
+
+        ul.custom-bullet li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+            color: #475569;
+        }
+</style>
+
+<div class="container my-5">
+    <div class="row g-4">
+
+        <!-- CỘT TRÁI (THÔNG TIN CÔNG VIỆC) -->
+        <div class="col-lg-8">
+            <!-- Header Công việc -->
+            <div class="job-card mb-4 shadow-sm">
+                <div class="d-flex align-items-center mb-4">
+                    <img src="@Model.CompanyLogo" alt="@Model.CompanyName" class="border rounded p-1 me-3" style="width: 70px; height: 70px; object-fit: contain;">
+                    <div>
+                        <h3 class="fw-bold mb-1">@Model.Title</h3>
+                        <p class="text-primary fw-bold mb-0" style="color: #3b5a82 !important;">@Model.CompanyName</p>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4 text-dark">
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">MỨC LƯƠNG</small>
+                        <strong>💵 @Model.Salary</strong>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">ĐỊA ĐIỂM</small>
+                        <strong>📍 @Model.Location</strong>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">LOẠI HÌNH</small>
+                        <strong>💼 @Model.JobType</strong>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">SỐ LƯỢNG</small>
+                        <strong>👥 @(string.IsNullOrEmpty(Model.Quantity) ? "01 Người" : Model.Quantity)</strong>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">KINH NGHIỆM</small>
+                        <strong>🎓 @Model.Experience</strong>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">HẠN NỘP HỒ SƠ</small>
+                        <strong>⏰ @Model.Deadline.ToString("dd/MM/yyyy")</strong>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <span class="tag-stat" style="background-color: #dbeafe; color: #1e40af;">Đã ứng tuyển: @Model.AppliedCount</span>
+                    <span class="tag-stat" style="background-color: #ffedd5; color: #c2410c;">Đang phỏng vấn: @Model.InterviewingCount</span>
+                    @if (Model.IsUrgent)
+                    {
+                        <span class="tag-stat tag-urgent">⚡ Tuyển gấp</span>
+                    }
+                </div>
+            </div>
+
+            <!-- Chi tiết công việc -->
+            <div class="job-card shadow-sm">
+                <!-- Mô tả công việc -->
+                <div class="mb-5">
+                    <h5 class="section-title">Mô tả công việc</h5>
+                    <div class="text-secondary" style="line-height: 1.6;">
+                        @if (!string.IsNullOrEmpty(Model.Description))
+                        {
+                            var descs = Model.Description.Split('|');
+                            <p>@descs[0]</p>
+                            if (descs.Length > 1)
+                            {
+                                <ul class="custom-bullet">
+                                    @for (int i = 1; i < descs.Length; i++)
+                                    {
+                                        <li>@descs[i]</li>
+                                    }
+                                </ul>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <!-- Yêu cầu công việc -->
+                <div class="mb-5">
+                    <h5 class="section-title">Yêu cầu công việc</h5>
+                    @if (!string.IsNullOrEmpty(Model.Requirements))
+                    {
+                        <ul class="custom-bullet text-secondary">
+                            @foreach (var req in Model.Requirements.Split('|'))
+                            {
+                                <li>@req</li>
+                            }
+                        </ul>
+                    }
+                </div>
+
+                <!-- Quyền lợi -->
+                <div>
+                    <h5 class="section-title">Quyền lợi</h5>
+                    <div class="row g-3 mt-2">
+                        @if (!string.IsNullOrEmpty(Model.Benefits))
+                        {
+                            foreach (var benefit in Model.Benefits.Split('|'))
+                            {
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded text-danger fw-bold" style="background-color: #fff1f2; font-size: 0.9rem;">
+                                        🎁 @benefit
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI (SIDEBAR) -->
+        <div class="col-lg-4">
+
+            <!-- Hành động Ứng tuyển -->
+            <div class="job-card mb-4 shadow-sm text-center">
+                <button class="btn-apply-lg mb-3">Ứng tuyển ngay</button>
+                <div class="d-flex gap-2 mb-3">
+                    <button class="btn-outline"><i class="bi bi-bookmark"></i> Lưu</button>
+                    <button class="btn-outline"><i class="bi bi-share"></i> Chia sẻ</button>
+                </div>
+                <a href="#" class="text-danger small text-decoration-none">⚠️ Báo cáo công việc này</a>
+            </div>
+
+            <!-- Thông tin công ty -->
+            <div class="job-card mb-4 shadow-sm p-0 overflow-hidden">
+                <div class="bg-dark-blue p-4 text-center">
+                    <img src="@Model.CompanyLogo" class="rounded bg-white p-2" style="width: 60px; height: 60px; margin-top: 10px;">
+                </div>
+                <div class="p-4">
+                    <h5 class="fw-bold mb-2">@Model.CompanyName</h5>
+                    <p class="text-muted small mb-4">@(Model.CompanyDescription ?? "Đang cập nhật mô tả công ty.")</p>
+
+                    <ul class="list-unstyled small text-secondary mb-4" style="line-height: 2;">
+                        <li>👥 @(Model.CompanySize ?? "Đang cập nhật")</li>
+                        <li>🌐 <a href="#" class="text-decoration-none text-orange">@(Model.CompanyWebsite ?? "Đang cập nhật")</a></li>
+                        <li>📍 @(Model.CompanyAddress ?? Model.Location)</li>
+                    </ul>
+
+                    <button class="btn btn-outline-secondary w-100" style="border-radius: 6px;">Xem hồ sơ công ty</button>
+                </div>
+            </div>
+
+            <!-- Đăng ký nhận thông báo -->
+            <div class="job-card shadow-sm bg-dark-blue text-white">
+                <h5 class="fw-bold mb-2">Nhận thông báo việc làm</h5>
+                <p class="small text-secondary mb-3">Nhận các công việc tương tự trực tiếp qua email của bạn.</p>
+                <input type="email" class="form-control mb-3 shadow-none border-secondary text-white" style="background-color: #1e293b;" placeholder="your@email.com">
+                <button class="btn-apply-lg w-100">Đăng ký</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Việc làm liên quan -->
+    <div class="mt-5">
+        <h4 class="fw-bold mb-4">Việc làm liên quan</h4>
+        <div class="row g-4">
+            @if (ViewBag.RelatedJobs != null)
+            {
+                foreach (var rJob in ViewBag.RelatedJobs)
+                {
+                    <div class="col-md-6">
+                        <div class="job-card p-3 shadow-sm">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center">
+                                    <img src="@rJob.CompanyLogo" class="rounded border me-3" style="width: 50px;">
+                                    <div>
+                                        <h6 class="fw-bold mb-0">@rJob.Title</h6>
+                                        <small class="text-muted">@rJob.CompanyName</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <strong class="text-orange small">@rJob.Salary</strong>
+                                <span class="small text-muted">📍 @rJob.Location</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>

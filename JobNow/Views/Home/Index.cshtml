@@ -1,0 +1,149 @@
+﻿@model JobNow.ViewModels.HomeViewModel
+
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<style>
+    .jn-hero-banner {
+        background-color: #3b5a82; /* Màu xanh trầm chuẩn Figma */
+        padding: 80px 0;
+    }
+
+    .btn-orange {
+        background-color: #ff6b00;
+        color: white;
+        font-weight: bold;
+        padding: 12px 40px;
+        border-radius: 6px;
+        border: none;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+    }
+
+        .btn-orange:hover {
+            background-color: #e66000;
+            color: white;
+        }
+</style>
+
+<!-- Hero Banner Mới -->
+<div class="jn-hero-banner text-white text-center mb-5">
+    <h1 class="display-4 fw-bold mb-3">Nâng tầm sự nghiệp của bạn</h1>
+    <p class="lead mb-4">Hơn 50,000+ cơ hội việc làm đang chờ đón bạn từ những tập đoàn hàng đầu<br />Việt Nam.</p>
+
+    <!-- Nút bấm chuyển hướng sang trang Tìm Việc -->
+    <a asp-controller="Job" asp-action="Index" class="btn btn-orange text-decoration-none">TÌM VIỆC</a>
+</div>
+
+<!-- ĐOẠN NÀY ĐỂ BÁO LỖI NẾU DATABASE VẪN TỊT -->
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="container mb-5">
+        <div class="alert alert-danger shadow-sm">
+            <strong>Cảnh báo Database:</strong> @ViewBag.ErrorMessage
+            <hr />
+            <small>Cậu hãy chụp màn hình dòng lỗi này gửi cho tớ nhé!</small>
+        </div>
+    </div>
+}
+
+<div class="container">
+    <!-- Top Nhà Tuyển Dụng VN -->
+    <div class="text-center mb-5">
+        <h3 class="fw-bold mb-4">Top Nhà Tuyển Dụng Hàng Đầu Tại Việt Nam</h3>
+        <div class="row row-cols-2 row-cols-md-6 g-3">
+            @foreach (var employer in Model.TopVietNamEmployers)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0">
+                        <img src="@employer.LogoUrl" class="card-img-top p-3" alt="@employer.Name">
+                        <div class="card-body p-2">
+                            <p class="card-text small text-danger">@employer.Name</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Top Nhà Tuyển Dụng Thế Giới -->
+    <div class="text-center mb-5">
+        <h3 class="fw-bold mb-4">Top Nhà Tuyển Dụng Hàng Đầu Trên Thế Giới</h3>
+        <div class="row row-cols-2 row-cols-md-6 g-3">
+            @foreach (var employer in Model.TopGlobalEmployers)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0">
+                        <img src="@employer.LogoUrl" class="card-img-top p-3" alt="@employer.Name">
+                        <div class="card-body p-2">
+                            <p class="card-text small text-danger">@employer.Name</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <!-- Việc làm theo ngành nghề -->
+        <div class="col-md-6">
+            <h4 class="fw-bold mb-3">Việc làm theo ngành nghề</h4>
+            <div class="row row-cols-1 row-cols-md-2 g-3">
+                @foreach (var industry in Model.Industries)
+                {
+                    <div class="col">
+                        <div class="card p-3 shadow-sm border-0 h-100 flex-row align-items-center" style="background-color: #fdf5f3;">
+                            <img src="@industry.IconUrl" style="width:30px; height:30px;" class="me-3" alt="icon">
+                            <div>
+                                <h6 class="mb-0 fw-bold">@industry.Name</h6>
+                                <small class="text-muted">@industry.JobCount việc làm</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Việc làm theo địa điểm -->
+        <div class="col-md-6">
+            <h4 class="fw-bold mb-3">Việc làm theo địa điểm</h4>
+            <div class="row row-cols-1 row-cols-md-2 g-3">
+                @foreach (var location in Model.Locations)
+                {
+                    <div class="col">
+                        <div class="card text-white shadow-sm border-0 h-100">
+                            <img src="@location.ImageUrl" class="card-img h-100 object-fit-cover" alt="@location.Name">
+                            <div class="card-img-overlay d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.4);">
+                                <h5 class="card-title fw-bold mb-0">@location.Name</h5>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Cẩm nang nghề nghiệp -->
+    <div class="mb-5">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold">Cẩm nang nghề nghiệp</h3>
+            <p class="text-muted">Chia sẻ kinh nghiệm và xu hướng thị trường lao động mới nhất</p>
+        </div>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @foreach (var article in Model.Articles)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0">
+                        <img src="@article.ImageUrl" class="card-img-top" alt="Bài viết">
+                        <div class="card-body">
+                            <small class="text-danger fw-bold d-block mb-2">@article.Category</small>
+                            <h5 class="card-title fw-bold">@article.Title</h5>
+                            <p class="card-text text-muted small">@article.Summary</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

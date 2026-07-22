@@ -1,0 +1,142 @@
+﻿@model IEnumerable<JobNow.Models.Notification>
+
+@{
+    ViewData["Title"] = "Thông Báo";
+}
+
+<style>
+    body {
+        background-color: #F8FAFC;
+    }
+
+    .notification-banner {
+        background-color: #bbd6fe;
+        padding: 50px 0;
+    }
+
+    .notification-title {
+        color: #0b1f3f;
+        font-weight: 800;
+        font-size: 3.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .noti-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: 0.2s;
+        border-left: 4px solid transparent;
+    }
+
+        .noti-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+    /* Highlight cho thông báo chưa đọc */
+    .noti-unread {
+        border-left: 4px solid #ea580c;
+        background-color: #fffaf5;
+    }
+
+    .noti-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .icon-application {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+
+    .icon-course {
+        background-color: #fce7f3;
+        color: #be185d;
+    }
+
+    .icon-system {
+        background-color: #f1f5f9;
+        color: #475569;
+    }
+
+    .empty-state {
+        padding: 100px 0;
+        text-align: center;
+        color: #64748b;
+    }
+</style>
+
+<!-- Banner Thông Báo -->
+<div class="notification-banner mb-4">
+    <div class="container">
+        <h1 class="notification-title mb-0">THÔNG BÁO CỦA BẠN</h1>
+    </div>
+</div>
+
+<div class="container mb-5" style="min-height: 50vh;">
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger shadow-sm">Lỗi Database: @ViewBag.ErrorMessage</div>
+    }
+
+    <!-- Header phần danh sách -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <p class="mb-0 text-muted small">Hiển thị <strong class="text-dark">@ViewBag.TotalNotifications</strong> thông báo</p>
+        <div class="d-flex align-items-center">
+            <span class="small text-muted me-2 text-nowrap">Sắp xếp:</span>
+            <select class="form-select form-select-sm border-0 fw-bold shadow-none bg-transparent" style="cursor: pointer;">
+                <option>Mới nhất</option>
+                <option>Cũ nhất</option>
+                <option>Chưa đọc</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Danh sách hiển thị -->
+    @if (Model != null && Model.Any())
+    {
+        foreach (var noti in Model)
+        {
+            <div class="noti-card d-flex align-items-start @(noti.IsRead ? "" : "noti-unread")">
+
+                <!-- Icon phân loại thông báo -->
+                <div class="noti-icon me-3
+                    @(noti.Type == "application" ? "icon-application" :
+                      noti.Type == "course" ? "icon-course" : "icon-system")">
+                    @(noti.Type == "application" ? "💼" :
+                      noti.Type == "course" ? "🎓" : "⚙️")
+                </div>
+
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <h6 class="fw-bold mb-0 text-dark">@noti.Title</h6>
+                        <small class="text-muted">@noti.CreatedAt</small>
+                    </div>
+                    <p class="text-secondary mb-2 small" style="line-height: 1.6;">@noti.Message</p>
+
+                    @if (!string.IsNullOrEmpty(noti.ActionLink) && noti.ActionLink != "#")
+                    {
+                        <a href="@noti.ActionLink" class="text-primary small text-decoration-none fw-bold">Xem chi tiết &rarr;</a>
+                    }
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <!-- Giao diện khi không có thông báo nào (Empty State) -->
+        <div class="empty-state">
+            <div class="fs-1 mb-3">📭</div>
+            <h5 class="fw-bold">Bạn chưa có thông báo nào</h5>
+            <p class="small">Khi có hoạt động mới như nhà tuyển dụng xem hồ sơ, chúng tôi sẽ cập nhật cho bạn tại đây.</p>
+        </div>
+    }
+</div>
