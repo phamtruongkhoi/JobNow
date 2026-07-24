@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace JobNow.Controllers
 {
+    [Authorize]
     public class NotificationController : Controller
     {
         private readonly Supabase.Client _supabase;

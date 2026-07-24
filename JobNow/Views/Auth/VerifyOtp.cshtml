@@ -1,0 +1,108 @@
+﻿@model JobNow.ViewModels.HomeViewModel.VerifyOtpVM
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Nhập Mã OTP - JobNow</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+            body {
+                background-color: #bbd6fe;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .auth-container {
+                width: 100%;
+                max-width: 400px;
+                text-align: center;
+            }
+
+            .auth-title {
+                color: white;
+                font-weight: bold;
+                font-size: 3rem;
+                margin-bottom: 30px;
+            }
+
+            .form-control {
+                border: none;
+                border-radius: 0;
+                padding: 12px;
+                margin-bottom: 20px;
+            }
+
+            .form-label {
+                color: #475569;
+                font-weight: bold;
+                text-align: left;
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            .btn-orange {
+                background-color: #ff6b00;
+                color: white;
+                font-weight: bold;
+                border: none;
+                padding: 10px 40px;
+                border-radius: 4px;
+            }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <h1 class="auth-title">Nhập Mã OTP</h1>
+        <p class="text-secondary fw-bold">Mã đã được gửi đến: @Model.Email</p>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger p-2 small fw-bold">@ViewBag.Error</div>
+        }
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success p-2 small fw-bold">@TempData["Success"]</div>
+        }
+
+        <form asp-action="VerifyOtp" method="post">
+            <!-- Đã có Model cụ thể ở dòng 1 nên asp-for sẽ hoạt động bình thường -->
+            <input type="hidden" asp-for="Email" />
+            <input type="hidden" asp-for="Type" />
+
+            <div class="text-start">
+                <label class="form-label">Nhập Mã OTP</label>
+                <input type="text" asp-for="Otp" class="form-control" required autocomplete="off">
+            </div>
+
+            <!-- Bộ đếm ngược thời gian -->
+            <p class="text-danger fw-bold small mb-3" id="timerText">Mã sẽ hết hạn sau: <span id="countdown">120</span>s</p>
+
+            <button type="submit" class="btn btn-orange w-100 mb-2">XÁC NHẬN</button>
+        </form>
+
+        <!-- Form gửi lại mã (Ban đầu ẩn đi, hết 120s mới hiện) -->
+        <div id="resendDiv" style="display: none; margin-top: 15px;">
+            <p class="small text-secondary fw-bold mb-2">Không nhận được mã hoặc mã đã hết hạn?</p>
+            <a href="/Auth/ResendOtp?email=@Model.Email&type=@Model.Type" class="btn btn-sm btn-outline-secondary w-100 fw-bold">GỬI LẠI MÃ OTP</a>
+        </div>
+    </div>
+
+    <!-- Script đếm ngược -->
+    <script>
+            let timeLeft = 120;
+            let timerId = setInterval(function() {
+                timeLeft--;
+                document.getElementById("countdown").innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerId); // Dừng bộ đếm
+                    document.getElementById("timerText").style.display = "none"; // Ẩn dòng chữ đếm ngược
+                    document.getElementById("resendDiv").style.display = "block"; // Hiện nút Gửi lại mã
+                }
+            }, 1000);
+    </script>
+</body>
+</html>

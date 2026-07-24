@@ -1,0 +1,127 @@
+﻿@model JobNow.ViewModels.HomeViewModel.RegisterVM
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Đăng Ký - JobNow</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+            body {
+                background-color: #bbd6fe;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .auth-container {
+                width: 100%;
+                max-width: 450px;
+                text-align: center;
+            }
+
+            .auth-title {
+                color: white;
+                font-weight: bold;
+                font-size: 3rem;
+                margin-bottom: 30px;
+            }
+
+            .form-control, .form-select {
+                border: none;
+                border-radius: 0;
+                padding: 12px;
+                margin-bottom: 20px;
+            }
+
+            .form-label {
+                color: #475569;
+                font-weight: bold;
+                text-align: left;
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            .btn-orange {
+                background-color: #ff6b00;
+                color: white;
+                font-weight: bold;
+                border: none;
+                padding: 10px 40px;
+                border-radius: 4px;
+            }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <h1 class="auth-title">Đăng Kí</h1>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger p-2">@ViewBag.Error</div>
+        }
+
+        <form asp-action="Register" method="post">
+            <div class="text-start">
+                <label class="form-label">Nhập Tên Người Dùng</label>
+                <input type="text" asp-for="Name" class="form-control" required>
+            </div>
+
+            <div class="text-start">
+                <label class="form-label">Nhập Gmail</label>
+                <input type="email" asp-for="Email" class="form-control" required>
+            </div>
+
+            <div class="text-start position-relative">
+                <label class="form-label">Nhập Mật Khẩu</label>
+                <div class="input-group mb-1">
+                    <input type="password" id="regPassword" asp-for="Password" class="form-control mb-0" required minlength="6">
+                    <button type="button" class="btn btn-outline-secondary bg-white text-dark fw-bold" onclick="generatePassword()" style="border-radius: 0;">Tạo ngẫu nhiên</button>
+                </div>
+                <small class="text-muted d-block mb-3 text-start" style="font-size: 0.8rem; line-height: 1.4;">
+                    * Mật khẩu cần có chữ hoa, chữ thường, số và ký tự đặc biệt (VD: JobNow@@2026).
+                </small>
+            </div>
+
+            <div class="text-start">
+                <label class="form-label">Chọn Vai Trò</label>
+                <select asp-for="Role" class="form-select" required>
+                    <option value="candidate">Người ứng tuyển</option>
+                    <option value="employer">Nhà tuyển dụng</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-orange mt-2">ĐĂNG KÍ</button>
+        </form>
+
+        <div class="mt-4">
+            <a asp-action="Login" class="text-secondary fw-bold text-decoration-none">Đã có tài khoản: ĐĂNG NHẬP</a>
+        </div>
+    </div>
+
+    <!-- Script tạo mật khẩu -->
+    <script>
+            function generatePassword() {
+                // Tạo mật khẩu ngẫu nhiên đạt chuẩn bảo mật cao của Supabase
+                const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                // Dùng @@ để thoát lỗi cú pháp Razor
+                const specials = "!@@#$%^&*";
+                let pass = "";
+                for (let i = 0; i < 8; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+
+                // Đảm bảo luôn có đủ các thành phần bắt buộc
+                pass += "A"; // Chữ hoa
+                pass += "a"; // Chữ thường
+                pass += "1"; // Số
+                pass += specials.charAt(Math.floor(Math.random() * specials.length)); // Ký tự đặc biệt
+
+                // Hiển thị ra ô input
+                var input = document.getElementById('regPassword');
+                input.value = pass;
+                input.type = "text"; // Tạm thời hiện rõ chữ để người dùng copy
+            }
+    </script>
+</body>
+</html>

@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace JobNow.Controllers
 {
+    [Authorize]
     public class JobController : Controller
     {
         private readonly Supabase.Client _supabase;

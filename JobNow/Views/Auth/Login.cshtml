@@ -1,0 +1,92 @@
+﻿@model JobNow.ViewModels.HomeViewModel.LoginVM
+@{
+    Layout = null; // Ẩn Navbar và Footer đi
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Đăng Nhập - JobNow</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+            body {
+                background-color: #bbd6fe;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .auth-container {
+                width: 100%;
+                max-width: 400px;
+                text-align: center;
+            }
+
+            .auth-title {
+                color: white;
+                font-weight: bold;
+                font-size: 3rem;
+                margin-bottom: 30px;
+            }
+
+            .form-control {
+                border: none;
+                border-radius: 0;
+                padding: 12px;
+                margin-bottom: 20px;
+            }
+
+            .form-label {
+                color: #475569;
+                font-weight: bold;
+                text-align: left;
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            .btn-orange {
+                background-color: #ff6b00;
+                color: white;
+                font-weight: bold;
+                border: none;
+                padding: 10px 40px;
+                border-radius: 4px;
+            }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <h1 class="auth-title">Đăng Nhập</h1>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger p-2">@ViewBag.Error</div>
+        }
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success p-2">@TempData["Success"]</div>
+        }
+
+        <form asp-action="Login" method="post">
+            <div class="text-start">
+                <label class="form-label">Nhập Gmail</label>
+                <input type="email" asp-for="Email" class="form-control" required>
+            </div>
+
+            <div class="text-start">
+                <label class="form-label">Nhập Mật Khẩu</label>
+                <input type="password" asp-for="Password" class="form-control" required>
+            </div>
+            <!-- Tớ đã bỏ ô "Nhập lại mật khẩu" theo chuẩn UI/UX nhé -->
+
+            <button type="submit" class="btn btn-orange mt-3">ĐĂNG NHẬP</button>
+        </form>
+
+        <div class="d-flex justify-content-between mt-4">
+            <a asp-action="ForgotPassword" class="text-secondary fw-bold text-decoration-none">Quên Mật Khẩu</a>
+            <a asp-action="Register" class="text-secondary fw-bold text-decoration-none">Chưa có tài khoản: ĐĂNG KÍ</a>
+        </div>
+    </div>
+</body>
+</html>

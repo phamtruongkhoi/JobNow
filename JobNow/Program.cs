@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 using Supabase;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace JobNow
 {
@@ -15,6 +16,13 @@ namespace JobNow
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            // Cấu hình Authentication bằng Cookie
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Auth/Login"; // Nếu chưa đăng nhập, tự động đuổi về trang này
+                    options.AccessDeniedPath = "/Auth/AccessDenied";
+                });
 
             // 1. Đọc cấu hình từ appsettings.json
             var supabaseUrl = builder.Configuration["Supabase:Url"];
@@ -49,6 +57,7 @@ namespace JobNow
 
             app.UseRouting();
 
+            app.UseAuthentication(); // Thêm dòng này
             app.UseAuthorization();
 
             app.MapControllerRoute(
