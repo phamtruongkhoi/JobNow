@@ -42,6 +42,9 @@ namespace JobNow
             // 4. Đăng ký Supabase vào hệ thống DI dạng Singleton
             builder.Services.AddSingleton(supabaseClient);
 
+            // 5. Đăng ký GeminiService sử dụng HttpClient vào DI container
+            builder.Services.AddHttpClient<JobNow.Services.GeminiService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

@@ -1,0 +1,1221 @@
+@model JobNow.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = Model.Profile;
+    var isEmpty = Model.IsEmptyProfile;
+}
+
+@section Styles {
+    <style>
+        :root {
+            --jn-bg-page: #f8fafc;
+            --jn-card-bg: #ffffff;
+            --jn-border-color: #e2e8f0;
+            --jn-text-main: #0f172a;
+            --jn-text-muted: #64748b;
+            --jn-primary-light: #eff6ff;
+            --jn-primary-blue: #2563eb;
+            --jn-orange: #f97316;
+            --jn-orange-hover: #ea580c;
+        }
+
+        .profile-page-container {
+            background-color: var(--jn-bg-page);
+            padding: 40px 0;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* --- CỘT TRÁI: SIDEBAR (25% - col-lg-3 col-md-4) --- */
+        .sidebar-card {
+            background-color: var(--jn-card-bg);
+            border: 1px solid var(--jn-border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .user-compact-info {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--jn-border-color);
+            margin-bottom: 20px;
+        }
+
+        .user-compact-info .avatar-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .user-compact-info .avatar-sm {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--jn-primary-light);
+            transition: transform 0.2s ease;
+        }
+
+        .user-compact-info .avatar-wrapper:hover .avatar-sm {
+            transform: scale(1.04);
+        }
+
+        .user-compact-info .avatar-edit-badge {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background-color: var(--jn-orange);
+            color: #ffffff;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .user-compact-info h6 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--jn-text-main);
+            margin-bottom: 4px;
+        }
+
+        .user-compact-info p {
+            font-size: 13px;
+            color: var(--jn-text-muted);
+            margin-bottom: 0;
+        }
+
+        /* Vertical Menu (Menu Dọc) */
+        .vertical-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .vertical-menu li {
+            margin-bottom: 6px;
+        }
+
+        .vertical-menu .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .vertical-menu .nav-link i {
+            font-size: 18px;
+            margin-right: 12px;
+            color: #94a3b8;
+            transition: color 0.2s ease;
+        }
+
+        .vertical-menu .nav-link:hover {
+            background-color: var(--jn-primary-light);
+            color: var(--jn-primary-blue);
+        }
+
+        .vertical-menu .nav-link:hover i {
+            color: var(--jn-primary-blue);
+        }
+
+        .vertical-menu .nav-link.active {
+            background-color: #fff7ed;
+            color: var(--jn-orange);
+            font-weight: 600;
+            border-left: 4px solid var(--jn-orange);
+        }
+
+        .vertical-menu .nav-link.active i {
+            color: var(--jn-orange);
+        }
+
+        /* --- CỘT PHẢI: MAIN CONTENT (75% - col-lg-9 col-md-8) --- */
+        .content-card {
+            background-color: var(--jn-card-bg);
+            border: 1px solid var(--jn-border-color);
+            border-radius: 16px;
+            padding: 28px 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .content-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        .card-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--jn-border-color);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .card-header-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--jn-text-main);
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header-title i {
+            color: var(--jn-primary-blue);
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        /* Nút bấm màu cam */
+        .btn-jn-orange {
+            background-color: var(--jn-orange);
+            color: #ffffff !important;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 8px;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-jn-orange:hover {
+            background-color: var(--jn-orange-hover);
+            color: #ffffff !important;
+            transform: translateY(-1px);
+        }
+
+        /* Form & Grid Thông tin nghề nghiệp */
+        .info-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--jn-text-muted);
+            margin-bottom: 6px;
+        }
+
+        .info-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--jn-text-main);
+        }
+
+        .status-badge {
+            background-color: var(--jn-primary-light);
+            color: var(--jn-primary-blue);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        /* Kỹ năng (Skills Badges - Tone Xanh Nhạt) */
+        .skill-tag {
+            background-color: var(--jn-primary-light);
+            color: var(--jn-primary-blue);
+            border: 1px solid #bfdbfe;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 7px 16px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            margin-right: 8px;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .skill-tag:hover {
+            background-color: #dbeafe;
+            transform: translateY(-1px);
+        }
+
+        /* Lịch sử làm việc (Timeline) */
+        .work-timeline {
+            position: relative;
+            padding-left: 28px;
+            list-style: none;
+            margin: 0;
+        }
+
+        .work-timeline::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 6px;
+            bottom: 6px;
+            width: 2px;
+            background-color: #e2e8f0;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 28px;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -28px;
+            top: 4px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: var(--jn-primary-light);
+            border: 3px solid var(--jn-primary-blue);
+        }
+
+        .work-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--jn-text-main);
+            margin-bottom: 4px;
+        }
+
+        .work-company {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--jn-orange);
+            margin-bottom: 4px;
+        }
+
+        .work-duration {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--jn-text-muted);
+            margin-bottom: 10px;
+        }
+
+        .work-desc {
+            font-size: 14px;
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        /* CV & Saved Job Cards */
+        .jn-saved-job-card {
+            transition: all 0.2s ease;
+            border: 1px solid var(--jn-border-color) !important;
+        }
+
+        .jn-saved-job-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06) !important;
+            border-color: var(--jn-orange) !important;
+        }
+
+        .btn-gradient-ai {
+            background: linear-gradient(135deg, #7E22CE 0%, #EC4899 50%, #F97316 100%);
+            color: #ffffff !important;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient-ai:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+        }
+
+        .typewriter-box {
+            background-color: #F8FAFC;
+            border-left: 4px solid #9333EA;
+            border-radius: 12px;
+            padding: 24px;
+            min-height: 180px;
+            max-height: 480px;
+            overflow-y: auto;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #1E293B;
+        }
+    </style>
+}
+
+<div class="profile-page-container">
+    <div class="container">
+        <!-- ALERT THÔNG BÁO THÀNH CÔNG / LỖI -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> <strong>@TempData["Success"]</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null || ViewBag.Error != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>@(TempData["Error"] ?? ViewBag.Error)</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- GRID BOOTSTRAP 5: 2 CỘT (25% & 75%) -->
+        <div class="row g-4">
+
+            <!-- ================= CỘT TRÁI: SIDEBAR (25% - col-lg-3 col-md-4) ================= -->
+            <div class="col-lg-3 col-md-4">
+                <div class="sidebar-card">
+                    <!-- Thông tin thu gọn User -->
+                    <div class="user-compact-info">
+                        <div class="avatar-wrapper" data-bs-toggle="modal" data-bs-target="#avatarUploadModal" title="Bấm để đổi ảnh đại diện">
+                            @if (!string.IsNullOrEmpty(profile.AvatarUrl))
+                            {
+                                <img src="@profile.AvatarUrl" alt="Avatar User" class="avatar-sm" />
+                            }
+                            else
+                            {
+                                <img src="https://ui-avatars.com/api/?name=@(Uri.EscapeDataString(profile.FullName ?? profile.Email ?? "JN"))&background=eff6ff&color=2563eb&size=200" alt="Avatar User" class="avatar-sm" />
+                            }
+                            <span class="avatar-edit-badge"><i class="bi bi-camera-fill"></i></span>
+                        </div>
+                        <h6>@(string.IsNullOrEmpty(profile.FullName) ? "Ứng viên JobNow" : profile.FullName)</h6>
+                        <p>@(string.IsNullOrEmpty(profile.Title) ? "Chức danh chuyên môn" : profile.Title)</p>
+                    </div>
+
+                    <!-- Vertical Menu -->
+                    <ul class="vertical-menu nav nav-pills flex-column" id="profileTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="personal-tab" data-bs-toggle="pill" data-bs-target="#tab-personal" type="button" role="tab" aria-controls="tab-personal" aria-selected="true">
+                                <i class="bi bi-person-circle"></i>
+                                <span>Cá nhân</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="cv-tab" data-bs-toggle="pill" data-bs-target="#tab-cv" type="button" role="tab" aria-controls="tab-cv" aria-selected="false">
+                                <i class="bi bi-file-earmark-text"></i>
+                                <span>Quản lý CV (@Model.CVs.Count)</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="saved-tab" data-bs-toggle="pill" data-bs-target="#tab-saved" type="button" role="tab" aria-controls="tab-saved" aria-selected="false">
+                                <i class="bi bi-bookmark-heart"></i>
+                                <span>Công việc đã lưu (@Model.SavedJobs.Count)</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="settings-tab" data-bs-toggle="pill" data-bs-target="#tab-settings" type="button" role="tab" aria-controls="tab-settings" aria-selected="false">
+                                <i class="bi bi-gear"></i>
+                                <span>Settings</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ================= CỘT PHẢI: MAIN CONTENT (75% - col-lg-9 col-md-8) ================= -->
+            <div class="col-lg-9 col-md-8">
+                <div class="tab-content" id="profileTabContent">
+
+                    <!-- ====================================================================
+                         TAB 1: CÁ NHÂN (HỒ SƠ CỦA TÔI)
+                         ==================================================================== -->
+                    <div class="tab-pane fade show active" id="tab-personal" role="tabpanel" aria-labelledby="personal-tab">
+
+                        <!-- CARD 1: THÔNG TIN NGHỀ NGHIỆP -->
+                        <div class="content-card">
+                            <div class="card-header-flex">
+                                <h4 class="card-header-title">
+                                    <i class="bi bi-briefcase"></i>
+                                    Thông tin nghề nghiệp
+                                </h4>
+                                <button type="button" class="btn btn-jn-orange" onclick="switchToEditTab()">
+                                    <i class="bi bi-pencil-square"></i>
+                                    Chỉnh sửa
+                                </button>
+                            </div>
+
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="info-label">VỊ TRÍ MONG MUỐN</div>
+                                    <div class="info-value">@(profile.DesiredPosition ?? "Chưa xác định")</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-label">MỨC LƯƠNG MONG MUỐN</div>
+                                    <div class="info-value">
+                                        @(profile.ExpectedSalary.HasValue ? $"{profile.ExpectedSalary.Value:N0} VNĐ/tháng" : "Thỏa thuận")
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-label">KINH NGHIỆM LÀM VIỆC</div>
+                                    <div class="info-value">
+                                        @(profile.YearsOfExperience.HasValue ? $"{profile.YearsOfExperience.Value} năm" : "0 năm")
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-label">TRẠNG THÁI TÌM VIỆC</div>
+                                    <div>
+                                        <span class="status-badge">
+                                            <i class="bi bi-check-circle-fill me-1"></i> @(profile.WorkStatus ?? "Đang sẵn sàng nhận việc")
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CARD 2: KỸ NĂNG CHUYÊN MÔN -->
+                        <div class="content-card">
+                            <div class="card-header-flex">
+                                <h4 class="card-header-title">
+                                    <i class="bi bi-stars"></i>
+                                    Kỹ năng chuyên môn
+                                </h4>
+                                <button type="button" class="btn btn-jn-orange" onclick="switchToEditTab()">
+                                    <i class="bi bi-plus-lg"></i>
+                                    Thêm kỹ năng
+                                </button>
+                            </div>
+
+                            <div>
+                                @if (!string.IsNullOrWhiteSpace(profile.Skills))
+                                {
+                                    var skillList = profile.Skills.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                                    foreach (var skill in skillList)
+                                    {
+                                        <span class="skill-tag">@skill.Trim()</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="skill-tag">Figma</span>
+                                    <span class="skill-tag">UI/UX Design</span>
+                                    <span class="skill-tag">Product Strategy</span>
+                                    <span class="skill-tag">Design Systems</span>
+                                    <span class="skill-tag">Prototyping</span>
+                                    <span class="skill-tag">User Research</span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- CARD 3: LỊCH SỬ LÀM VIỆC -->
+                        <div class="content-card">
+                            <div class="card-header-flex">
+                                <h4 class="card-header-title">
+                                    <i class="bi bi-clock-history"></i>
+                                    Lịch sử làm việc
+                                </h4>
+                                <button type="button" class="btn btn-jn-orange" data-bs-toggle="modal" data-bs-target="#addWorkModal">
+                                    <i class="bi bi-plus-lg"></i>
+                                    Thêm kinh nghiệm
+                                </button>
+                            </div>
+
+                            @if (Model.WorkHistories.Count == 0)
+                            {
+                                <!-- Dữ liệu mẫu hiển thị đúng chuẩn thiết kế khi tài khoản chưa nhập lịch sử -->
+                                <ul class="work-timeline">
+                                    <li class="timeline-item">
+                                        <div class="timeline-dot"></div>
+                                        <div class="work-title">Senior Product Designer</div>
+                                        <div class="work-company">TechNova Solutions</div>
+                                        <div class="work-duration">
+                                            <i class="bi bi-calendar-event me-1"></i> Tháng 6/2021 - Hiện tại
+                                        </div>
+                                        <p class="work-desc">
+                                            Dẫn dắt thiết kế toàn bộ hệ thống cho nền tảng Fintech, làm việc trực tiếp với Product Manager và Dev Lead. Cải thiện tỷ lệ chuyển đổi (Conversion Rate) tăng 25% thông qua tối ưu hóa luồng thanh toán và trải nghiệm người dùng.
+                                        </p>
+                                    </li>
+                                    <li class="timeline-item">
+                                        <div class="timeline-dot"></div>
+                                        <div class="work-title">Product Designer</div>
+                                        <div class="work-company">CreativeFlow Agency</div>
+                                        <div class="work-duration">
+                                            <i class="bi bi-calendar-event me-1"></i> Tháng 1/2019 - Tháng 5/2021
+                                        </div>
+                                        <p class="work-desc">
+                                            Thiết kế giao diện Web và Mobile App cho đa dạng khách hàng từ thương mại điện tử đến giáo dục trực tuyến. Xây dựng và duy trì thư viện Design System cho các dự án nội bộ.
+                                        </p>
+                                    </li>
+                                </ul>
+                            }
+                            else
+                            {
+                                <ul class="work-timeline">
+                                    @foreach (var work in Model.WorkHistories)
+                                    {
+                                        <li class="timeline-item">
+                                            <div class="timeline-dot"></div>
+                                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                                <div>
+                                                    <div class="work-title">@work.Position</div>
+                                                    <div class="work-company">@work.CompanyName</div>
+                                                    <div class="work-duration">
+                                                        <i class="bi bi-calendar-event me-1"></i>
+                                                        @(work.StartDate?.ToString("MM/yyyy") ?? "...") - @(work.EndDate.HasValue ? work.EndDate.Value.ToString("MM/yyyy") : "Hiện tại")
+                                                    </div>
+                                                </div>
+                                                <form asp-action="DeleteWorkHistory" asp-controller="Profile" method="post" onsubmit="return confirm('Bạn có chắc muốn xóa kinh nghiệm này không?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@work.Id" />
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle" title="Xóa">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            @if (!string.IsNullOrWhiteSpace(work.Description))
+                                            {
+                                                <p class="work-desc" style="white-space: pre-line;">@work.Description</p>
+                                            }
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+
+                    </div>
+
+                    <!-- ====================================================================
+                         TAB 2: QUẢN LÝ CV
+                         ==================================================================== -->
+                    <div class="tab-pane fade" id="tab-cv" role="tabpanel" aria-labelledby="cv-tab">
+                        <div class="content-card">
+                            <div class="card-header-flex">
+                                <h4 class="card-header-title">
+                                    <i class="bi bi-file-earmark-person"></i>
+                                    Danh sách CV đã tải lên
+                                </h4>
+                                <button type="button" class="btn btn-jn-orange" data-bs-toggle="modal" data-bs-target="#uploadCVModal">
+                                    <i class="bi bi-cloud-upload-fill me-1"></i>
+                                    Tải lên CV mới
+                                </button>
+                            </div>
+
+                            @if (Model.CVs.Count == 0)
+                            {
+                                <div class="text-center py-5">
+                                    <i class="bi bi-file-earmark-arrow-up text-muted opacity-50" style="font-size: 3.5rem;"></i>
+                                    <h6 class="fw-bold text-dark mt-3">Bạn chưa có CV nào trong hồ sơ</h6>
+                                    <p class="text-muted mb-4">
+                                        Tải lên CV của bạn (định dạng PDF hoặc Word) để dễ dàng nộp hồ sơ ứng tuyển vào các vị trí mong muốn.
+                                    </p>
+                                    <button class="btn btn-jn-orange" data-bs-toggle="modal" data-bs-target="#uploadCVModal">
+                                        <i class="bi bi-cloud-upload-fill me-1"></i> Tải lên CV đầu tiên
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="row g-3">
+                                    @foreach (var cv in Model.CVs)
+                                    {
+                                        var ext = System.IO.Path.GetExtension(cv.FileName)?.ToLower() ?? ".pdf";
+                                        var isPdf = ext == ".pdf";
+                                        var iconClass = isPdf ? "bi-file-earmark-pdf-fill text-danger" : "bi-file-earmark-word-fill text-primary";
+                                        var sizeText = (cv.Size >= 1024 * 1024) 
+                                            ? $"{(cv.Size / (1024.0 * 1024.0)):N2} MB" 
+                                            : $"{(cv.Size / 1024.0):N0} KB";
+
+                                        <div class="col-12">
+                                            <div class="p-3 border rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3 bg-light bg-opacity-50">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="fs-1">
+                                                        <i class="bi @iconClass"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                            <h6 class="fw-bold text-dark mb-0">@(cv.FileName ?? "Hồ sơ CV")</h6>
+                                                            @if (cv.IsDefault)
+                                                            {
+                                                                <span class="badge bg-warning text-dark rounded-pill px-2 py-1">
+                                                                    <i class="bi bi-star-fill me-1"></i> CV Mặc định
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                        <small class="text-muted">
+                                                            <i class="bi bi-hdd me-1"></i> @sizeText • 
+                                                            <i class="bi bi-clock me-1"></i> Tải lên: @(cv.UploadDate?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")
+                                                        </small>
+                                                    </div>
+                                                </div>
+
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <!-- Nút AI Tư vấn CV (Google Gemini) -->
+                                                    <button type="button" class="btn btn-sm btn-gradient-ai rounded-pill px-3 fw-semibold shadow-sm" 
+                                                            onclick="analyzeCVWithAI(@cv.Id, '@(cv.FileName ?? "CV")')" 
+                                                            title="Tư vấn tối ưu CV bằng Google Gemini AI">
+                                                        <i class="bi bi-stars me-1"></i> AI Tư vấn CV
+                                                    </button>
+
+                                                    <!-- Nút Xem trực tuyến -->
+                                                    @if (!string.IsNullOrEmpty(cv.FileUrl))
+                                                    {
+                                                        <a href="@cv.FileUrl" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3" title="Xem trực tuyến">
+                                                            <i class="bi bi-eye me-1"></i> Xem
+                                                        </a>
+                                                    }
+
+                                                    <!-- Nút Tải xuống -->
+                                                    <a asp-action="DownloadCV" asp-controller="Profile" asp-route-id="@cv.Id" class="btn btn-outline-primary btn-sm rounded-pill px-3" title="Tải xuống CV về máy">
+                                                        <i class="bi bi-download me-1"></i> Tải về
+                                                    </a>
+
+                                                    <!-- Nút Đặt làm mặc định -->
+                                                    @if (!cv.IsDefault)
+                                                    {
+                                                        <form asp-action="SetDefaultCV" asp-controller="Profile" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@cv.Id" />
+                                                            <button type="submit" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold">
+                                                                Đặt mặc định
+                                                            </button>
+                                                        </form>
+                                                    }
+
+                                                    <!-- Nút Xóa CV -->
+                                                    <form asp-action="DeleteCV" asp-controller="Profile" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa CV này không?');">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@cv.Id" />
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle" title="Xóa CV">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- ====================================================================
+                         TAB 3: CÔNG VIỆC ĐÃ LƯU
+                         ==================================================================== -->
+                    <div class="tab-pane fade" id="tab-saved" role="tabpanel" aria-labelledby="saved-tab">
+                        <div class="content-card">
+                            <div class="card-header-flex">
+                                <h4 class="card-header-title">
+                                    <i class="bi bi-bookmark-heart-fill"></i>
+                                    Danh sách việc làm đã lưu
+                                </h4>
+                                <a asp-controller="Job" asp-action="Index" class="btn btn-jn-orange">
+                                    <i class="bi bi-search me-1"></i> Khám phá việc làm
+                                </a>
+                            </div>
+
+                            @if (Model.SavedJobs.Count == 0)
+                            {
+                                <div class="text-center py-5">
+                                    <i class="bi bi-bookmark-x text-muted opacity-50" style="font-size: 3.5rem;"></i>
+                                    <h6 class="fw-bold text-dark mt-3">Bạn chưa lưu công việc nào</h6>
+                                    <p class="text-muted mb-4">
+                                        Khi tìm kiếm việc làm, hãy bấm nút "Lưu công việc" (biểu tượng trái tim) để xem lại và ứng tuyển sau.
+                                    </p>
+                                    <a asp-controller="Job" asp-action="Index" class="btn btn-jn-orange">
+                                        <i class="bi bi-briefcase me-1"></i> Tìm việc làm ngay
+                                    </a>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="row g-4">
+                                    @foreach (var item in Model.SavedJobs)
+                                    {
+                                        var job = item.Job;
+                                        var isExpired = job != null && job.Deadline != default && job.Deadline < DateTime.UtcNow;
+                                        var statusText = isExpired ? "Hết hạn nộp" : "Đang tuyển";
+                                        var statusBadge = isExpired ? "bg-secondary text-white" : "bg-success text-white";
+                                        var logoUrl = (job != null && !string.IsNullOrEmpty(job.CompanyLogo))
+                                            ? job.CompanyLogo
+                                            : "https://ui-avatars.com/api/?name=" + Uri.EscapeDataString(job?.CompanyName ?? "JobNow") + "&size=100&background=f97316&color=fff";
+
+                                        <div class="col-12">
+                                            <div class="p-4 border rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-4 bg-white shadow-sm jn-saved-job-card">
+                                                <div class="d-flex align-items-center gap-3 flex-grow-1">
+                                                    <div class="flex-shrink-0">
+                                                        <img src="@logoUrl" alt="Company Logo" class="rounded-3 shadow-sm border p-1 bg-white" style="width: 75px; height: 75px; object-fit: contain;" />
+                                                    </div>
+                                                    <div>
+                                                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                            <h6 class="fw-bold text-dark mb-0">
+                                                                <a asp-controller="Job" asp-action="Detail" asp-route-id="@(job?.Id ?? item.JobId)" class="text-decoration-none text-dark">
+                                                                    @(job?.Title ?? "Công việc #" + item.JobId)
+                                                                </a>
+                                                            </h6>
+                                                            <span class="badge @statusBadge rounded-pill px-3 py-1 fw-normal">
+                                                                <i class="bi bi-circle-fill me-1 small"></i> @statusText
+                                                            </span>
+                                                        </div>
+
+                                                        <div class="text-secondary fw-semibold small mb-2">
+                                                            <i class="bi bi-building me-1"></i> @(job?.CompanyName ?? "Công ty tuyển dụng")
+                                                        </div>
+
+                                                        <div class="d-flex align-items-center gap-3 flex-wrap small text-muted">
+                                                            <span class="text-success fw-bold">
+                                                                <i class="bi bi-currency-dollar me-1"></i> @(job?.Salary ?? "Thỏa thuận")
+                                                            </span>
+                                                            <span>
+                                                                <i class="bi bi-geo-alt me-1"></i> @(job?.Location ?? "Toàn quốc")
+                                                            </span>
+                                                            <span>
+                                                                <i class="bi bi-calendar-x me-1"></i> Hạn nộp: @(job != null && job.Deadline != default ? job.Deadline.ToString("dd/MM/yyyy") : "N/A")
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                                    @if (!isExpired)
+                                                    {
+                                                        <a asp-controller="Job" asp-action="Detail" asp-route-id="@(job?.Id ?? item.JobId)" class="btn btn-jn-orange">
+                                                            <i class="bi bi-send-fill me-1"></i> Ứng tuyển ngay
+                                                        </a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button class="btn btn-secondary rounded-pill px-4" disabled>Đã hết hạn</button>
+                                                    }
+
+                                                    <form asp-action="DeleteSavedJob" asp-controller="Profile" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa công việc này khỏi danh sách đã lưu?');">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@item.Id" />
+                                                        <button type="submit" class="btn btn-outline-danger rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" title="Xóa khỏi danh sách lưu">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- ====================================================================
+                         TAB 4: SETTINGS (CHỈNH SỬA HỒ SƠ)
+                         ==================================================================== -->
+                    <div class="tab-pane fade" id="tab-settings" role="tabpanel" aria-labelledby="settings-tab">
+                        <div class="content-card">
+                            <div class="card-header-flex">
+                                <h4 class="card-header-title">
+                                    <i class="bi bi-gear"></i>
+                                    Settings - Cập nhật thông tin cá nhân
+                                </h4>
+                            </div>
+
+                            <form asp-action="UpdateProfile" asp-controller="Profile" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" asp-for="Profile.Id" />
+                                <input type="hidden" asp-for="Profile.AvatarUrl" />
+                                <input type="hidden" asp-for="Profile.Role" />
+
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Họ và tên đầy đủ <span class="text-danger">*</span></label>
+                                        <input type="text" asp-for="Profile.FullName" class="form-control form-control-lg rounded-3" placeholder="VD: Nguyễn Văn A" required />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Chức danh nghề nghiệp</label>
+                                        <input type="text" asp-for="Profile.Title" class="form-control form-control-lg rounded-3" placeholder="VD: Senior Product Designer" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Email liên hệ</label>
+                                        <input type="email" asp-for="Profile.Email" class="form-control form-control-lg rounded-3" placeholder="email@domain.com" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Số điện thoại</label>
+                                        <input type="tel" asp-for="Profile.Phone" class="form-control form-control-lg rounded-3" placeholder="VD: 0912345678" />
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Ngày sinh</label>
+                                        <input type="date" asp-for="Profile.Dob" class="form-control form-control-lg rounded-3" 
+                                               value="@(profile.Dob.HasValue ? profile.Dob.Value.ToString("yyyy-MM-dd") : "")" />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Số năm kinh nghiệm</label>
+                                        <input type="number" asp-for="Profile.YearsOfExperience" class="form-control form-control-lg rounded-3" min="0" max="50" placeholder="0" />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Khu vực sinh sống/làm việc</label>
+                                        <input type="text" asp-for="Profile.Location" class="form-control form-control-lg rounded-3" placeholder="VD: TP. Hồ Chí Minh" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Vị trí mong muốn ứng tuyển</label>
+                                        <input type="text" asp-for="Profile.DesiredPosition" class="form-control form-control-lg rounded-3" placeholder="VD: Senior Product Designer" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Mức lương mong muốn (VNĐ/tháng)</label>
+                                        <input type="number" asp-for="Profile.ExpectedSalary" class="form-control form-control-lg rounded-3" placeholder="VD: 35000000" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Tình trạng làm việc hiện tại</label>
+                                        <select asp-for="Profile.WorkStatus" class="form-select form-select-lg rounded-3">
+                                            <option value="Sẵn sàng nhận việc ngay">Sẵn sàng nhận việc ngay</option>
+                                            <option value="Đang tìm kiếm cơ hội mới">Đang tìm kiếm cơ hội mới</option>
+                                            <option value="Đang làm việc nhưng sẵn sàng đổi">Đang làm việc nhưng sẵn sàng đổi</option>
+                                            <option value="Tạm dừng tìm việc">Tạm dừng tìm việc</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Kỹ năng chuyên môn</label>
+                                        <input type="text" asp-for="Profile.Skills" class="form-control form-control-lg rounded-3" placeholder="Phân cách bởi dấu phẩy: Figma, UI/UX Design, Product Strategy..." />
+                                        <small class="text-muted">Mẹo: Sử dụng dấu phẩy (,) để phân cách giữa các kỹ năng.</small>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Giới thiệu bản thân & Mục tiêu nghề nghiệp</label>
+                                        <textarea asp-for="Profile.Introduction" class="form-control rounded-3" rows="5" placeholder="Chia sẻ đôi điều về bản thân, các thành tựu nổi bật và mục tiêu dài hạn..."></textarea>
+                                    </div>
+
+                                    <div class="col-12 text-end mt-4">
+                                        <button type="submit" class="btn btn-jn-orange px-5 py-3">
+                                            <i class="bi bi-check2-circle me-1"></i> Lưu thay đổi hồ sơ
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL 1: UPLOAD ẢNH ĐẠI DIỆN (AVATAR) LÊN SUPABASE STORAGE
+     ========================================================================= -->
+<div class="modal fade" id="avatarUploadModal" tabindex="-1" aria-labelledby="avatarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="avatarModalLabel">Cập nhật ảnh đại diện</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="UploadAvatar" asp-controller="Profile" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3">
+                        <img id="avatarPreview" src="@(profile.AvatarUrl ?? "https://ui-avatars.com/api/?name=" + Uri.EscapeDataString(profile.FullName ?? "JN") + "&size=200&background=eff6ff&color=2563eb")" 
+                             alt="Avatar Preview" class="rounded-circle shadow-sm" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #fff;" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="avatarInput" class="form-label fw-semibold">Chọn file ảnh từ thiết bị</label>
+                        <input type="file" class="form-control" id="cvInput" name="cvFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required />
+                        <small class="text-muted d-block mt-2">
+                            Hỗ trợ định dạng .PDF, .DOC, .DOCX, .JPG, .PNG. Dung lượng tối đa 10 MB.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 justify-content-center">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-jn-orange px-4">
+                        <i class="bi bi-cloud-upload-fill me-1"></i> Lưu ảnh đại diện
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL 2: THÊM KINH NGHIỆM LÀM VIỆC (WORK HISTORY)
+     ========================================================================= -->
+<div class="modal fade" id="addWorkModal" tabindex="-1" aria-labelledby="addWorkModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="addWorkModalLabel">Thêm kinh nghiệm làm việc</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="AddWorkHistory" asp-controller="Profile" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tên công ty / Tổ chức <span class="text-danger">*</span></label>
+                            <input type="text" name="CompanyName" class="form-control rounded-3" placeholder="VD: JobNow Technology" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Chức danh / Vị trí <span class="text-danger">*</span></label>
+                            <input type="text" name="Position" class="form-control rounded-3" placeholder="VD: Senior Product Designer" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Ngày bắt đầu</label>
+                            <input type="date" name="StartDate" class="form-control rounded-3" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Ngày kết thúc</label>
+                            <input type="date" name="EndDate" class="form-control rounded-3" />
+                            <small class="text-muted">Để trống nếu bạn hiện vẫn đang làm việc tại đây.</small>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Mô tả công việc & Thành tựu</label>
+                            <textarea name="Description" class="form-control rounded-3" rows="4" placeholder="Mô tả các trách nhiệm chính, công nghệ sử dụng và thành tựu nổi bật..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 justify-content-end">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-jn-orange px-4">
+                        <i class="bi bi-plus-circle me-1"></i> Thêm kinh nghiệm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL 3: UPLOAD FILE CV (PDF/WORD) LÊN SUPABASE STORAGE
+     ========================================================================= -->
+<div class="modal fade" id="uploadCVModal" tabindex="-1" aria-labelledby="uploadCVModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="uploadCVModalLabel">Tải lên CV của bạn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="UploadCV" asp-controller="Profile" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="cvInput" class="form-label fw-semibold">Chọn file CV từ thiết bị <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="cvInput" name="cvFile" accept=".pdf,.doc,.docx" required />
+                        <small class="text-muted d-block mt-2">
+                            Hỗ trợ định dạng .PDF, .DOC, .DOCX. Dung lượng tối đa 10 MB.
+                        </small>
+                    </div>
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" id="isDefaultCheck" name="isDefault" value="true" @(Model.CVs.Count == 0 ? "checked" : "") />
+                        <label class="form-check-label fw-semibold text-dark" for="isDefaultCheck">
+                            Đặt làm CV mặc định ngay sau khi tải lên
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 justify-content-center">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-jn-orange px-4">
+                        <i class="bi bi-cloud-upload-fill me-1"></i> Tải lên và Lưu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     MODAL 4: AI TƯ VẤN CV (GOOGLE GEMINI AI - TYPEWRITER EFFECT)
+     ========================================================================= -->
+<div class="modal fade" id="aiAdviceModal" tabindex="-1" aria-labelledby="aiAdviceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fs-4 text-warning"><i class="bi bi-stars"></i></span>
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark mb-0" id="aiAdviceModalLabel">AI Tư vấn & Tối ưu CV</h5>
+                        <small class="text-muted" id="aiModalSubtitle">Đánh giá dưới góc nhìn Chuyên gia HR từ Google Gemini AI</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="aiLoadingContainer" class="text-center py-5">
+                    <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h6 class="fw-bold text-dark">✨ Google Gemini AI đang đọc và đánh giá CV của bạn...</h6>
+                    <p class="text-muted small mb-0">Quá trình này có thể mất từ 3 - 5 giây. Vui lòng đợi trong giây lát.</p>
+                </div>
+
+                <div id="aiErrorContainer" class="alert alert-danger d-none rounded-3" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> <span id="aiErrorText"></span>
+                </div>
+
+                <div id="aiResultContainer" class="d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-purple text-white bg-opacity-75 rounded-pill px-3 py-1" style="background-color: #9333EA;">
+                            <i class="bi bi-robot me-1"></i> Google Gemini AI HR Expert
+                        </span>
+                        <small class="text-muted"><i class="bi bi-check2-all text-success me-1"></i> Phân tích hoàn tất</small>
+                    </div>
+                    <div id="typewriterContent" class="typewriter-box shadow-sm"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 justify-content-end">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Preview ảnh đại diện ngay khi chọn file
+        function previewSelectedImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('avatarPreview').src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // =========================================================================
+        // ĐIỀU HƯỚNG TAB & LƯU TRẠNG THÁI TRÊN CLIENT (SMOOTH TABS)
+        // =========================================================================
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabLinks = document.querySelectorAll('#profileTab .nav-link');
+            const tabPanes = document.querySelectorAll('#profileTabContent .tab-pane');
+
+            tabLinks.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('data-bs-target');
+                    activateTab(this, targetId);
+                    localStorage.setItem('jn_active_profile_tab', targetId);
+                });
+            });
+
+            const savedTabId = localStorage.getItem('jn_active_profile_tab');
+            if (savedTabId) {
+                const targetBtn = document.querySelector(`#profileTab .nav-link[data-bs-target="${savedTabId}"]`);
+                if (targetBtn) {
+                    activateTab(targetBtn, savedTabId);
+                }
+            }
+
+            function activateTab(activeBtn, targetId) {
+                tabLinks.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.setAttribute('aria-selected', 'false');
+                });
+                tabPanes.forEach(pane => {
+                    pane.classList.remove('show', 'active');
+                });
+
+                activeBtn.classList.add('active');
+                activeBtn.setAttribute('aria-selected', 'true');
+
+                const activePane = document.querySelector(targetId);
+                if (activePane) {
+                    activePane.classList.add('show', 'active');
+                }
+            }
+        });
+
+        // Chuyển sang Tab "Settings" khi bấm Nút Chỉnh sửa
+        function switchToEditTab() {
+            var triggerEl = document.querySelector('#settings-tab');
+            if (triggerEl) {
+                triggerEl.click();
+                triggerEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // =========================================================================
+        // GOOGLE GEMINI AI TƯ VẤN CV (AJAX + TYPEWRITER EFFECT)
+        // =========================================================================
+        let typewriterInterval = null;
+
+        function analyzeCVWithAI(cvId, cvName) {
+            var modalEl = document.getElementById('aiAdviceModal');
+            var aiModal = new bootstrap.Modal(modalEl);
+            
+            document.getElementById('aiModalSubtitle').innerText = "Đang đánh giá tài liệu: " + cvName;
+            document.getElementById('aiLoadingContainer').classList.remove('d-none');
+            document.getElementById('aiErrorContainer').classList.add('d-none');
+            document.getElementById('aiResultContainer').classList.add('d-none');
+            document.getElementById('typewriterContent').innerHTML = "";
+            if (typewriterInterval) clearInterval(typewriterInterval);
+            
+            aiModal.show();
+
+            var formData = new FormData();
+            formData.append('id', cvId);
+
+            fetch('/Profile/AnalyzeCVWithAI', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('aiLoadingContainer').classList.add('d-none');
+                if (data.success && data.advice) {
+                    document.getElementById('aiResultContainer').classList.remove('d-none');
+                    runTypewriterEffect(data.advice, document.getElementById('typewriterContent'));
+                } else {
+                    document.getElementById('aiErrorContainer').classList.remove('d-none');
+                    document.getElementById('aiErrorText').innerText = data.message || "Không thể phân tích CV lúc này.";
+                }
+            })
+            .catch(err => {
+                document.getElementById('aiLoadingContainer').classList.add('d-none');
+                document.getElementById('aiErrorContainer').classList.remove('d-none');
+                document.getElementById('aiErrorText').innerText = "Lỗi kết nối máy chủ: " + err.message;
+            });
+        }
+
+        function runTypewriterEffect(markdownText, element, speed = 8) {
+            if (typewriterInterval) clearInterval(typewriterInterval);
+            element.innerHTML = "";
+            
+            var formattedHtml = markdownText
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/^### (.*$)/gim, '<h6 class="fw-bold text-primary mt-3 mb-1">$1</h6>')
+                .replace(/^## (.*$)/gim, '<h5 class="fw-bold text-dark mt-3 mb-2">$1</h5>')
+                .replace(/^# (.*$)/gim, '<h4 class="fw-bold text-dark mt-3 mb-2">$1</h4>')
+                .replace(/^- (.*$)/gim, '<li class="mb-2 ms-3">$1</li>')
+                .replace(/\n\n/g, '<br/><br/>')
+                .replace(/\n/g, '<br/>');
+
+            let index = 0;
+            typewriterInterval = setInterval(() => {
+                if (index < formattedHtml.length) {
+                    if (formattedHtml.charAt(index) === '<') {
+                        let closeIdx = formattedHtml.indexOf('>', index);
+                        if (closeIdx !== -1) {
+                            element.innerHTML += formattedHtml.substring(index, closeIdx + 1);
+                            index = closeIdx + 1;
+                            return;
+                        }
+                    }
+                    element.innerHTML += formattedHtml.charAt(index);
+                    index++;
+                    element.scrollTop = element.scrollHeight;
+                } else {
+                    clearInterval(typewriterInterval);
+                }
+            }, speed);
+        }
+    </script>
+}

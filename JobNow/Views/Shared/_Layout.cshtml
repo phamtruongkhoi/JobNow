@@ -1,10 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - JobNow</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
             /* Set màu nền toàn web chuẩn Figma */
@@ -40,6 +41,7 @@
                     color: white;
                 }
     </style>
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
     <!-- THANH ĐIỀU HƯỚNG (NAVBAR) -->
@@ -71,19 +73,30 @@
                             <a class="nav-link jn-nav-link" asp-controller="Notification" asp-action="Index">Thông Báo</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link jn-nav-link" href="#">Cá Nhân</a>
+                            <a class="nav-link jn-nav-link" asp-controller="Profile" asp-action="Index">Cá Nhân</a>
                         </li>
                     </ul>
 
-                    <!-- Nhóm nút Đăng nhập / Đăng ký -->
+                    <!-- Nhóm nút Đăng nhập / Đăng ký / Thông tin cá nhân -->
                     <div class="d-flex align-items-center">
-                        <a href="#" class="text-white text-decoration-none me-3 fw-bold">Login</a>
-                        <button class="btn btn-register px-4 rounded-pill">Register</button>
-                        <i class="bi bi-bell text-white ms-3"></i> <!-- Icon chuông (nếu sau này cậu cài bootstrap-icons) -->
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <a asp-controller="Profile" asp-action="Index" class="text-white text-decoration-none me-3 fw-bold d-flex align-items-center">
+                                <i class="bi bi-person-circle fs-5 me-1 text-warning"></i> @User.Identity.Name
+                            </a>
+                            <a asp-controller="Auth" asp-action="Logout" class="btn btn-outline-light btn-sm rounded-pill px-3">Đăng Xuất</a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Auth" asp-action="Login" class="text-white text-decoration-none me-3 fw-bold">Login</a>
+                            <a asp-controller="Auth" asp-action="Register" class="btn btn-register px-4 rounded-pill">Register</a>
+                        }
+                        <i class="bi bi-bell text-white ms-3"></i> <!-- Icon chuông -->
                     </div>
                 </div>
             </div>
         </nav>
+
     </header>
 
     <!-- PHẦN NỘI DUNG CHÍNH -->
@@ -184,5 +197,9 @@
                 </div>
             </div>
         </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
