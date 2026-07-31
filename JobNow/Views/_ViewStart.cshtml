@@ -1,3 +1,10 @@
-﻿@{
-    Layout = "_Layout";
+@{
+    var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+    if (role == "employer") {
+        Layout = "_LayoutEmployer";
+    } else if (role == "admin") {
+        Layout = "_LayoutAdmin";
+    } else {
+        Layout = "_Layout";
+    }
 }

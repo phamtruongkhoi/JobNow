@@ -45,27 +45,23 @@
 </head>
 <body>
     <!-- THANH ĐIỀU HƯỚNG (NAVBAR) -->
-    @await Html.PartialAsync("_HeaderCandidate")
+    @await Html.PartialAsync("_HeaderAdmin")
 
     <!-- PHẦN NỘI DUNG CHÍNH -->
     <!-- Bỏ class "container" ở đây để màu xanh của Banner Trang chủ được tràn viền 100% -->
     <main role="main">
         @if (TempData["Success"] != null)
         {
-            <div class="container mt-3">
-                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+            <div class="alert alert-success alert-dismissible fade show shadow-sm m-3" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         }
         @if (TempData["Error"] != null)
         {
-            <div class="container mt-3">
-                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm m-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         }
         @RenderBody()
@@ -76,7 +72,7 @@
          was a duplicate / legacy version nested inside itself — invalid HTML.
          The inner <footer> (new JobNow 4-column design) is the newer, richer version.
          Decision: Remove the outer wrapper, keep only the inner 4-column footer. -->
-    @await Html.PartialAsync("_Footer")
+    
 
     <!-- MERGE DECISION: Upstream had the full script block: jQuery + Bootstrap + site.js + Scripts section.
          Stash only had Bootstrap + Scripts section — a partial edit that accidentally dropped jQuery and site.js.

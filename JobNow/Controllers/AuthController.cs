@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Supabase.Gotrue;
@@ -30,15 +30,29 @@ namespace JobNow.Controllers
                 // Gọi Supabase đăng nhập
                 var session = await _supabase.Auth.SignIn(model.Email, model.Password);
 
+                // Lấy thông tin Role từ DB
+                var response = await _supabase.From<Models.Profile>()
+                    .Where(x => x.Id == session.User.Id)
+                    .Single();
+                
+                var role = response?.Role ?? "candidate";
+
                 // Tạo Cookie chứng nhận đã đăng nhập cho ASP.NET
                 var claims = new List<Claim> {
                     new Claim(ClaimTypes.NameIdentifier, session.User.Id),
-                    new Claim(ClaimTypes.Email, session.User.Email)
+                    new Claim(ClaimTypes.Email, session.User.Email),
+                    new Claim(ClaimTypes.Role, role)
                 };
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-                return RedirectToAction("Index", "Home");
+                if (role == "admin") {
+                    return RedirectToAction("Index", "Admin");
+                } else if (role == "employer") {
+                    return RedirectToAction("Index", "Employer");
+                } else {
+                    return RedirectToAction("Index", "Home");
+                }
             }
             catch (System.Exception ex)
             {

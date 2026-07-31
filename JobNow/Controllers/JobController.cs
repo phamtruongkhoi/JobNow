@@ -143,9 +143,10 @@ namespace JobNow.Controllers
                     try 
                     {
                         var appResponse = await _supabase.From<Application>()
-                            .Where(a => a.JobId == id && a.ProfileId == userId)
-                            .Single();
-                        ViewBag.HasApplied = (appResponse != null);
+                            .Filter("job_id", Postgrest.Constants.Operator.Equals, id)
+                            .Filter("profile_id", Postgrest.Constants.Operator.Equals, userId)
+                            .Get();
+                        ViewBag.HasApplied = appResponse.Models != null && appResponse.Models.Any();
                     } 
                     catch { ViewBag.HasApplied = false; }
                 }
@@ -185,39 +186,52 @@ namespace JobNow.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ApplyPost(int jobId, int? cvId, string coverLetter)
+        public async Task<IActionResult> ApplyPost(int id, int? cvId, string coverLetter)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return RedirectToAction("Login", "Auth");
 
             try
             {
-                var existingApp = await _supabase.From<Application>()
-                    .Where(a => a.JobId == jobId && a.ProfileId == userId)
-                    .Single();
+                var existingAppResponse = await _supabase.From<Application>()
+                    .Filter("job_id", Postgrest.Constants.Operator.Equals, id)
+                    .Filter("profile_id", Postgrest.Constants.Operator.Equals, userId)
+                    .Get();
 
-                if (existingApp != null)
+                if (existingAppResponse.Models != null && existingAppResponse.Models.Any())
                 {
                     TempData["Error"] = "Bạn đã ứng tuyển công việc này rồi.";
-                    return RedirectToAction("Details", new { id = jobId });
+                    return RedirectToAction("Details", "Job", new { id = id });
                 }
             }
-            catch { /* Ignored, means not found */ }
-
-            var application = new Application
+            catch (Exception ex)
             {
-                JobId = jobId,
-                ProfileId = userId,
-                CvId = cvId,
-                CoverLetter = coverLetter,
-                Status = "Pending",
-                AppliedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+                TempData["Error"] = "Lỗi kiểm tra hồ sơ: " + ex.Message;
+                return RedirectToAction("Details", "Job", new { id = id });
+            }
 
-            await _supabase.From<Application>().Insert(application);
-            TempData["Success"] = "Ứng tuyển thành công!";
-            return RedirectToAction("Details", new { id = jobId });
+            try 
+            {
+                var application = new Application
+                {
+                    JobId = id,
+                    ProfileId = userId,
+                    CvId = cvId,
+                    CoverLetter = coverLetter,
+                    Status = "Pending",
+                    AppliedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                await _supabase.From<Application>().Insert(application);
+                TempData["Success"] = "Ứng tuyển thành công!";
+                return RedirectToAction("Details", "Job", new { id = id });
+            }
+            catch (Postgrest.Exceptions.PostgrestException ex) when (ex.Message.Contains("23505") || ex.Message.Contains("uq_application"))
+            {
+                TempData["Error"] = "Bạn đã ứng tuyển công việc này rồi.";
+                return RedirectToAction("Details", "Job", new { id = id });
+            }
         }
     }
 }

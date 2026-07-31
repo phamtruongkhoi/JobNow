@@ -50,7 +50,7 @@
                         <label class="form-label fw-bold">Chọn CV của bạn</label>
                         @if (Model.AvailableCVs.Any())
                         {
-                            <select asp-for="SelectedCvId" class="form-select">
+                            <select name="cvId" class="form-select">
                                 <option value="">-- Không gửi kèm CV (Chỉ gửi Thư giới thiệu) --</option>
                                 @foreach (var cv in Model.AvailableCVs)
                                 {
@@ -72,7 +72,7 @@
 
                     <div class="mb-4">
                         <label class="form-label fw-bold">Thư giới thiệu (Tùy chọn)</label>
-                        <textarea asp-for="CoverLetter" class="form-control" rows="5" placeholder="Viết lý do tại sao bạn phù hợp với công việc này..."></textarea>
+                        <textarea name="coverLetter" class="form-control" rows="5" placeholder="Viết lý do tại sao bạn phù hợp với công việc này..."></textarea>
                         <small class="text-muted mt-1 d-block">Những kỹ năng, kinh nghiệm nổi bật nhất của bạn.</small>
                     </div>
 

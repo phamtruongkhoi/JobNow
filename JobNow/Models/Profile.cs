@@ -7,8 +7,7 @@ namespace JobNow.Models
     [Table("jn_profiles")]
     public class Profile : BaseModel
     {
-        // SỬA TRUE THÀNH FALSE NHÉ
-        [PrimaryKey("id", false)]
+        [PrimaryKey("id", true)]
         public string? Id { get; set; }
 
         [Column("full_name")]

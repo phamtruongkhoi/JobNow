@@ -14,10 +14,12 @@ namespace JobNow.Controllers
     public class EmployerController : Controller
     {
         private readonly Supabase.Client _supabase;
+        private readonly IConfiguration _configuration;
 
-        public EmployerController(Supabase.Client supabase)
+        public EmployerController(Supabase.Client supabase, IConfiguration configuration)
         {
             _supabase = supabase;
+            _configuration = configuration;
         }
 
         public async Task<IActionResult> Index()
@@ -534,8 +536,7 @@ namespace JobNow.Controllers
                 ViewBag.JobTitle = job.Title;
                 ViewBag.JobId = job.Id;
 
-                // Fetch applications and related profiles/CVs manually (Supabase client limitation for deep joins)
-                var appsResponse = await _supabase.From<Application>().Where(a => a.JobId == jobId).Get();
+                var appsResponse = await _supabase.From<Application>().Filter("job_id", Postgrest.Constants.Operator.Equals, jobId).Get();
                 var applications = appsResponse.Models ?? new List<Application>();
 
                 var profileIds = applications.Select(a => a.ProfileId).Distinct().ToList();
@@ -543,21 +544,27 @@ namespace JobNow.Controllers
 
                 if (profileIds.Any())
                 {
-                    var profilesResponse = await _supabase.From<Profile>().Where(p => profileIds.Contains(p.Id)).Get();
-                    var profilesDict = profilesResponse.Models.ToDictionary(p => p.Id);
-                    foreach (var app in applications)
+                    var profilesResponse = await _supabase.From<Profile>().Filter("id", Postgrest.Constants.Operator.In, profileIds).Get();
+                    if (profilesResponse.Models != null) 
                     {
-                        if (profilesDict.TryGetValue(app.ProfileId, out var profile)) app.Profile = profile;
+                        var profilesDict = profilesResponse.Models.ToDictionary(p => p.Id);
+                        foreach (var app in applications)
+                        {
+                            if (profilesDict.TryGetValue(app.ProfileId, out var profile)) app.Profile = profile;
+                        }
                     }
                 }
 
                 if (cvIds.Any())
                 {
-                    var cvsResponse = await _supabase.From<UserCV>().Where(c => cvIds.Contains(c.Id)).Get();
-                    var cvsDict = cvsResponse.Models.ToDictionary(c => c.Id);
-                    foreach (var app in applications)
+                    var cvsResponse = await _supabase.From<UserCV>().Filter("id", Postgrest.Constants.Operator.In, cvIds).Get();
+                    if (cvsResponse.Models != null)
                     {
-                        if (app.CvId.HasValue && cvsDict.TryGetValue(app.CvId.Value, out var cv)) app.CV = cv;
+                        var cvsDict = cvsResponse.Models.ToDictionary(c => c.Id);
+                        foreach (var app in applications)
+                        {
+                            if (app.CvId.HasValue && cvsDict.TryGetValue(app.CvId.Value, out var cv)) app.CV = cv;
+                        }
                     }
                 }
 
@@ -585,15 +592,16 @@ namespace JobNow.Controllers
 
             try
             {
-                var app = await _supabase.From<Application>().Where(a => a.Id == appId).Single();
-                if (app == null) return NotFound();
+                var appResponse = await _supabase.From<Application>().Filter("id", Postgrest.Constants.Operator.Equals, appId).Get();
+                var app = appResponse.Models?.FirstOrDefault();
+                if (app == null) return NotFound("Application not found.");
 
-                // Validate employer owns the job
+                // Validate that the employer actually owns the job for this application
                 var job = await _supabase.From<Job>().Where(j => j.Id == app.JobId && j.EmployerId == employer.Id).Single();
                 if (job == null) return Unauthorized();
 
                 app.Status = status;
-                if (status == "Rejected") app.RejectionReason = reason;
+                app.RejectionReason = status == "Rejected" ? reason : null;
                 app.UpdatedAt = DateTime.UtcNow;
 
                 await _supabase.From<Application>().Update(app);

@@ -34,13 +34,13 @@ namespace JobNow.Models
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        [Reference(typeof(Job))]
+        [Newtonsoft.Json.JsonIgnore]
         public Job? Job { get; set; }
 
-        [Reference(typeof(UserCV))]
+        [Newtonsoft.Json.JsonIgnore]
         public UserCV? CV { get; set; }
         
-        [Reference(typeof(Profile))]
+        [Newtonsoft.Json.JsonIgnore]
         public Profile? Profile { get; set; }
     }
 }

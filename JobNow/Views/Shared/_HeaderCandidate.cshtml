@@ -1,0 +1,53 @@
+<header>
+    <nav class="navbar navbar-expand-lg jn-header py-3">
+        <div class="container">
+            <!-- Logo -->
+            <a class="navbar-brand text-white fw-bold fs-3" asp-area="" asp-controller="Home" asp-action="Index">
+                Job<span class="text-white">Now</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
+                <!-- Các tab menu -->
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link jn-nav-link active" asp-area="" asp-controller="Home" asp-action="Index">Trang Chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link jn-nav-link" asp-controller="Job" asp-action="Index">Tìm Việc</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link jn-nav-link" asp-controller="Course" asp-action="Index">Khóa Học</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link jn-nav-link" asp-controller="Notification" asp-action="Index">Thông Báo</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link jn-nav-link" asp-controller="Profile" asp-action="Index">Cá Nhân</a>
+                    </li>
+                </ul>
+
+                <!-- Nhóm nút Đăng nhập / Đăng ký / Thông tin cá nhân -->
+                <div class="d-flex align-items-center">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-controller="Profile" asp-action="Index" class="text-white text-decoration-none me-3 fw-bold d-flex align-items-center">
+                            <i class="bi bi-person-circle fs-5 me-1 text-warning"></i> @User.Identity.Name
+                        </a>
+                        
+                        <a asp-controller="Auth" asp-action="Logout" class="btn btn-outline-light btn-sm rounded-pill px-3">Đăng Xuất</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Auth" asp-action="Login" class="text-white text-decoration-none me-3 fw-bold">Login</a>
+                        <a asp-controller="Auth" asp-action="Register" class="btn btn-register px-4 rounded-pill">Register</a>
+                    }
+                    <i class="bi bi-bell text-white ms-3"></i> <!-- Icon chuông -->
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
