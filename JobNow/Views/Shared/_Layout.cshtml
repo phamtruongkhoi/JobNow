@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -83,6 +83,12 @@
                         <li class="nav-item">
                             <a class="nav-link jn-nav-link" asp-controller="Employer" asp-action="Index">Nhà Tuyển Dụng</a>
                         </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link jn-nav-link text-warning" asp-controller="Admin" asp-action="Index">Admin</a>
+                            </li>
+                        }
                     </ul>
 
                     <!-- Nhóm nút Đăng nhập / Đăng ký / Thông tin cá nhân -->

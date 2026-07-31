@@ -37,5 +37,8 @@ namespace JobNow.Models
 
         [Column("company_size")]
         public string CompanySize { get; set; }
+
+        [Column("profile_id")]
+        public string? ProfileId { get; set; }
     }
 }

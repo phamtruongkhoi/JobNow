@@ -1,4 +1,4 @@
-﻿using Postgrest.Attributes;
+using Postgrest.Attributes;
 using Postgrest.Models;
 using System;
 
@@ -20,5 +20,8 @@ namespace JobNow.Models
         [Column("is_new")] public bool IsNew { get; set; }
         [Column("duration")] public string Duration { get; set; }
         [Column("format")] public string Format { get; set; }
+
+        [Column("employer_id")] public int? EmployerId { get; set; }
+        [Reference(typeof(Employer), ReferenceAttribute.JoinType.Left)] public Employer Employer { get; set; }
     }
 }

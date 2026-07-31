@@ -1,0 +1,227 @@
+@{
+    ViewData["Title"] = "Cài Đặt";
+}
+
+<style>
+    /* === GLOBAL WORKSPACE STYLES === */
+    body {
+        background-color: #F8FAFC !important;
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .jn-workspace-container {
+        padding: 32px;
+    }
+
+    /* === PANEL & FORM === */
+    .jn-panel {
+        background-color: #FFFFFF;
+        border-radius: 12px;
+        border: 1px solid #E5E7EB;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        margin-bottom: 24px;
+    }
+
+    .jn-panel-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+    .jn-panel-header h5 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1F2937;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .jn-panel-body {
+        padding: 0 24px;
+    }
+
+    .settings-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 0;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+    .settings-row:last-child {
+        border-bottom: none;
+    }
+
+    .settings-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 4px;
+        font-size: 0.95rem;
+    }
+
+    .settings-desc {
+        font-size: 0.85rem;
+        color: #6B7280;
+        margin-bottom: 0;
+    }
+
+    .btn-secondary-custom {
+        background-color: #F1F5F9;
+        color: #475569;
+        border: 1px solid #E5E7EB;
+        padding: 8px 16px;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        font-size: 0.85rem;
+    }
+
+    .btn-secondary-custom:hover {
+        background-color: #E2E8F0;
+        color: #1F2937;
+    }
+
+    .form-switch .form-check-input {
+        width: 2.5em;
+        height: 1.25em;
+        cursor: pointer;
+    }
+    
+    .form-switch .form-check-input:checked {
+        background-color: #F97316;
+        border-color: #F97316;
+    }
+</style>
+
+<div class="row g-0">
+    <div class="col-auto">
+        @await Html.PartialAsync("Employer/_EmployerSidebar")
+    </div>
+    <div class="col">
+        <div class="jn-workspace-container">
+            <div class="mb-4">
+                <h4 class="fw-bold mb-1 text-dark">Cài đặt</h4>
+                <p class="text-muted mb-0">Cấu hình tài khoản và tùy chọn hiển thị</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <!-- Account Information -->
+                    <div class="jn-panel">
+                        <div class="jn-panel-header">
+                            <h5><i class="bi bi-person-badge text-muted"></i> Thông tin tài khoản</h5>
+                        </div>
+                        <div class="jn-panel-body">
+                            <div class="settings-row">
+                                <div>
+                                    <div class="settings-label">Địa chỉ Email</div>
+                                    <p class="settings-desc">employer@jobnow.vn</p>
+                                </div>
+                                <button class="btn btn-secondary-custom">Thay đổi</button>
+                            </div>
+                            <div class="settings-row">
+                                <div>
+                                    <div class="settings-label">Định dạng ngôn ngữ</div>
+                                    <p class="settings-desc">Tiếng Việt (Vietnam)</p>
+                                </div>
+                                <button class="btn btn-secondary-custom">Cập nhật</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security & Password -->
+                    <div class="jn-panel">
+                        <div class="jn-panel-header">
+                            <h5><i class="bi bi-shield-lock text-muted"></i> Bảo mật & Mật khẩu</h5>
+                        </div>
+                        <div class="jn-panel-body">
+                            <div class="settings-row">
+                                <div>
+                                    <div class="settings-label">Đổi mật khẩu</div>
+                                    <p class="settings-desc">Khuyến nghị đổi mật khẩu 3 tháng một lần để bảo mật tài khoản.</p>
+                                </div>
+                                <button class="btn btn-secondary-custom">Đổi mật khẩu</button>
+                            </div>
+                            <div class="settings-row">
+                                <div>
+                                    <div class="settings-label">Xác thực 2 yếu tố (2FA)</div>
+                                    <p class="settings-desc">Tăng cường bảo mật bằng mã xác nhận qua điện thoại.</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="twoFactorAuth">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notification Preferences -->
+                    <div class="jn-panel">
+                        <div class="jn-panel-header">
+                            <h5><i class="bi bi-bell text-muted"></i> Tùy chọn thông báo</h5>
+                        </div>
+                        <div class="jn-panel-body">
+                            <div class="settings-row">
+                                <div>
+                                    <div class="settings-label">Thông báo ứng viên mới</div>
+                                    <p class="settings-desc">Nhận email ngay khi có ứng viên nộp hồ sơ vào tin tuyển dụng.</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notifNewApplicant" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div>
+                                    <div class="settings-label">Báo cáo hàng tuần</div>
+                                    <p class="settings-desc">Tổng hợp số liệu thống kê lượt xem và ứng tuyển mỗi tuần.</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notifWeeklyReport" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div>
+                                    <div class="settings-label">Cập nhật hệ thống</div>
+                                    <p class="settings-desc">Nhận thông báo về các tính năng mới của JobNow.</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notifSystem">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <!-- About System -->
+                    <div class="jn-panel">
+                        <div class="jn-panel-header">
+                            <h5><i class="bi bi-info-circle text-muted"></i> Giới thiệu hệ thống</h5>
+                        </div>
+                        <div class="jn-panel-body py-4">
+                            <div class="text-center mb-4">
+                                <h4 class="fw-bold" style="color: #1F2937;">JobNow <span style="color: #F97316;">Employer</span></h4>
+                                <p class="text-muted mb-2">Phiên bản 1.0.0</p>
+                                <span class="badge bg-success rounded-pill px-3 py-2">Hệ thống đang hoạt động tốt</span>
+                            </div>
+                            
+                            <div class="settings-row pb-2 pt-0" style="padding: 10px 0;">
+                                <span class="settings-label mb-0" style="font-size: 0.85rem;">Hỗ trợ kỹ thuật</span>
+                                <a href="#" class="text-decoration-none" style="color: #F97316; font-size: 0.85rem; font-weight: 600;">Liên hệ</a>
+                            </div>
+                            <div class="settings-row pt-2 pb-0" style="padding: 10px 0; border-bottom: none;">
+                                <span class="settings-label mb-0" style="font-size: 0.85rem;">Điều khoản dịch vụ</span>
+                                <a href="#" class="text-decoration-none" style="color: #F97316; font-size: 0.85rem; font-weight: 600;">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

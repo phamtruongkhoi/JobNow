@@ -1,0 +1,205 @@
+@model IEnumerable<JobNow.Models.Application>
+
+@{
+    ViewData["Title"] = "Quản lý Ứng Viên";
+}
+
+<style>
+    .jn-workspace-container {
+        background-color: #F8FAFC;
+        min-height: calc(100vh - 76px);
+        padding: 30px;
+    }
+
+    .jn-panel {
+        background: #FFFFFF;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .status-pending { background-color: #FEF3C7; color: #D97706; }
+    .status-reviewed { background-color: #DBEAFE; color: #2563EB; }
+    .status-accepted { background-color: #D1FAE5; color: #059669; }
+    .status-rejected { background-color: #FEE2E2; color: #DC2626; }
+</style>
+
+<div class="row g-0">
+    <div class="col-auto">
+        @await Html.PartialAsync("Employer/_EmployerSidebar")
+    </div>
+    <div class="col">
+        <div class="jn-workspace-container">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success shadow-sm border-0 mb-4" style="border-radius: 12px;">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger shadow-sm border-0 mb-4" style="border-radius: 12px;">
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+
+            <div class="mb-4">
+                <a asp-action="MyJobs" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Quay lại Danh sách Tin</a>
+            </div>
+
+            <div class="jn-panel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="fw-bold">Ứng viên: @ViewBag.JobTitle</h4>
+                        <p class="text-muted mb-0">Tổng số: @Model.Count() hồ sơ</p>
+                    </div>
+                </div>
+
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1"></i>
+                        <h5>Chưa có ứng viên nào</h5>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ứng viên</th>
+                                    <th>Ngày nộp</th>
+                                    <th>CV</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var app in Model)
+                                {
+                                    var statusClass = app.Status switch {
+                                        "Reviewed" => "status-reviewed",
+                                        "Accepted" => "status-accepted",
+                                        "Rejected" => "status-rejected",
+                                        _ => "status-pending"
+                                    };
+
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold">@(app.Profile?.FullName ?? app.Profile?.Email ?? "Ẩn danh")</div>
+                                            @if (!string.IsNullOrEmpty(app.CoverLetter))
+                                            {
+                                                <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" data-bs-toggle="modal" data-bs-target="#coverLetterModal-@app.Id">
+                                                    <i class="bi bi-envelope-paper"></i> Xem Cover Letter
+                                                </button>
+                                            }
+                                        </td>
+                                        <td>@app.AppliedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            @if (app.CV != null)
+                                            {
+                                                <a href="@app.CV.FileUrl" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Xem/Tải CV</a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">Không đính kèm CV</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="status-badge @statusClass">@app.Status</span>
+                                            @if (app.Status == "Rejected" && !string.IsNullOrEmpty(app.RejectionReason))
+                                            {
+                                                <small class="d-block text-danger mt-1"><i class="bi bi-info-circle"></i> @app.RejectionReason</small>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    Đổi trạng thái
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                    <li>
+                                                        <form asp-action="UpdateApplicationStatus" method="post">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="appId" value="@app.Id" />
+                                                            <input type="hidden" name="status" value="Reviewed" />
+                                                            <button type="submit" class="dropdown-item"><i class="bi bi-eye text-primary"></i> Đã xem (Reviewed)</button>
+                                                        </form>
+                                                    </li>
+                                                    <li>
+                                                        <form asp-action="UpdateApplicationStatus" method="post">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="appId" value="@app.Id" />
+                                                            <input type="hidden" name="status" value="Accepted" />
+                                                            <button type="submit" class="dropdown-item"><i class="bi bi-check-circle text-success"></i> Chấp nhận (Accepted)</button>
+                                                        </form>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#rejectModal-@app.Id">
+                                                            <i class="bi bi-x-circle text-danger"></i> Từ chối (Rejected)
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Cover Letter Modal -->
+                                    <div class="modal fade" id="coverLetterModal-@app.Id" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Cover Letter</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p style="white-space: pre-wrap;">@app.CoverLetter</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Reject Modal -->
+                                    <div class="modal fade" id="rejectModal-@app.Id" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title text-danger">Từ chối ứng viên</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <form asp-action="UpdateApplicationStatus" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <div class="modal-body">
+                                                        <input type="hidden" name="appId" value="@app.Id" />
+                                                        <input type="hidden" name="status" value="Rejected" />
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold">Lý do từ chối <span class="text-danger">*</span></label>
+                                                            <textarea name="reason" class="form-control" rows="3" required placeholder="Nhập lý do để ứng viên biết tại sao..."></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                                                        <button type="submit" class="btn btn-danger">Xác nhận Từ chối</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

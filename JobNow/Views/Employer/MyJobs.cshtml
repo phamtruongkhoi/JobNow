@@ -1,0 +1,254 @@
+@model List<JobNow.Models.Job>
+
+@{
+    ViewData["Title"] = "Tin Tuyển Dụng";
+}
+
+<style>
+    /* === GLOBAL WORKSPACE STYLES === */
+    body {
+        background-color: #F8FAFC !important;
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .jn-workspace-container {
+        padding: 32px;
+    }
+
+    /* === PANEL & TABLE === */
+    .jn-panel {
+        background-color: #FFFFFF;
+        border-radius: 12px;
+        border: 1px solid #E5E7EB;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .jn-panel-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #F1F5F9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .jn-panel-header h4 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1F2937;
+    }
+    
+    .jn-panel-header p {
+        margin: 4px 0 0 0;
+        color: #6B7280;
+        font-size: 0.95rem;
+    }
+
+    .jn-table {
+        margin: 0;
+        width: 100%;
+    }
+
+    .jn-table th {
+        background-color: #F8FAFC;
+        color: #6B7280;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 24px;
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    .jn-table td {
+        padding: 16px 24px;
+        vertical-align: middle;
+        border-bottom: 1px solid #F1F5F9;
+        color: #374151;
+        font-size: 0.95rem;
+    }
+
+    .jn-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .jn-table tbody tr:hover {
+        background-color: #F8FAFC;
+    }
+
+    .badge-status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-active { background-color: #dcfce7; color: #16A34A; }
+    .badge-draft { background-color: #F3F4F6; color: #6B7280; }
+    .badge-expired { background-color: #fee2e2; color: #DC2626; }
+
+    .btn-primary-custom {
+        background-color: #F97316;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary-custom:hover {
+        background-color: #EA580C;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .btn-icon {
+        color: #9CA3AF;
+        background: none;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 6px;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+
+    .btn-icon:hover {
+        color: #F97316;
+        background-color: #FFEDD5;
+    }
+    
+    .btn-icon-danger:hover {
+        color: #DC2626;
+        background-color: #fee2e2;
+    }
+</style>
+
+<div class="row g-0">
+    <div class="col-auto">
+        @await Html.PartialAsync("Employer/_EmployerSidebar")
+    </div>
+    <div class="col">
+        <div class="jn-workspace-container">
+
+            @if (ViewBag.ErrorMessage != null)
+            {
+                <div class="alert alert-danger shadow-sm border-0 mb-4" style="border-radius: 12px;">
+                    <strong>Lỗi:</strong> @ViewBag.ErrorMessage
+                </div>
+            }
+
+            <div class="jn-panel">
+                <div class="jn-panel-header">
+                    <div>
+                        <h4>Tin tuyển dụng</h4>
+                        <p>Quản lý tất cả các tin tuyển dụng đã đăng</p>
+                    </div>
+                    <a asp-controller="Employer" asp-action="CreateJob" class="btn-primary-custom">
+                        <i class="bi bi-plus-lg"></i> Đăng tin tuyển dụng
+                    </a>
+                </div>
+
+                @if (Model.Count == 0)
+                {
+                    <div class="text-center py-5">
+                        <div class="fs-1 mb-3 text-muted"><i class="bi bi-inbox"></i></div>
+                        <h5 class="fw-bold text-dark">Chưa có tin tuyển dụng nào</h5>
+                        <p class="text-muted mb-4">Bắt đầu đăng tin tuyển dụng đầu tiên của bạn</p>
+                        <a asp-controller="Employer" asp-action="CreateJob" class="btn-primary-custom">
+                            <i class="bi bi-plus-lg"></i> Đăng tin tuyển dụng
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="jn-table">
+                            <thead>
+                                <tr>
+                                    <th>Tiêu đề</th>
+                                    <th>Mức lương</th>
+                                    <th>Địa điểm</th>
+                                    <th>Ngày đăng</th>
+                                    <th>Hạn nộp</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-center">Hồ sơ</th>
+                                    <th class="text-end">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var job in Model)
+                                {
+                                    var isDraft = job.Status == "Draft";
+                                    var isExpired = !isDraft && job.Deadline < DateTime.Now;
+                                    var statusClass = isDraft ? "badge-draft" : (isExpired ? "badge-expired" : "badge-active");
+                                    var statusText = isDraft ? "Bản nháp" : (isExpired ? "Đã hết hạn" : "Đang tuyển");
+
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold text-dark">@job.Title</div>
+                                            <small class="text-muted">@job.CompanyName</small>
+                                        </td>
+                                        <td>@job.Salary</td>
+                                        <td>@job.Location</td>
+                                        <td>@job.PostedAt</td>
+                                        <td>@job.Deadline.ToString("dd/MM/yyyy")</td>
+                                        <td><span class="badge-status @statusClass">@statusText</span></td>
+                                        <td class="text-center"><strong>@job.AppliedCount</strong></td>
+                                        <td class="text-end">
+                                            <a asp-controller="Job" asp-action="Details" asp-route-id="@job.Id" class="btn-icon" title="Xem">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a asp-controller="Employer" asp-action="Applicants" asp-route-jobId="@job.Id" class="btn-icon text-primary" title="Xem Ứng Viên">
+                                                <i class="bi bi-people"></i>
+                                            </a>
+                                            <a asp-controller="Employer" asp-action="EditJob" asp-route-id="@job.Id" class="btn-icon" title="Chỉnh sửa">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button" class="btn-icon btn-icon-danger" title="Xóa"
+                                                    data-bs-toggle="modal" data-bs-target="#deleteModal-@job.Id">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Delete Confirmation Modal -->
+                                    <div class="modal fade" id="deleteModal-@job.Id" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                                                <div class="modal-header border-0 pb-0">
+                                                    <h5 class="modal-title fw-bold">Xác nhận xóa</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body text-center py-4">
+                                                    <div class="mb-3 text-warning" style="font-size: 3rem;"><i class="bi bi-exclamation-triangle"></i></div>
+                                                    <p class="mb-1 text-dark">Bạn có chắc chắn muốn xóa tin tuyển dụng:</p>
+                                                    <p class="fw-bold text-danger mb-4">"@job.Title"</p>
+                                                    
+                                                    <div class="d-flex justify-content-center gap-3">
+                                                        <button type="button" class="btn btn-light px-4 py-2 fw-semibold" style="border-radius: 8px;" data-bs-dismiss="modal">Hủy</button>
+                                                        <form asp-controller="Employer" asp-action="DeleteJob" asp-route-id="@job.Id" method="post">
+                                                            @Html.AntiForgeryToken()
+                                                            <button type="submit" class="btn btn-danger px-4 py-2 fw-semibold" style="border-radius: 8px; background-color: #DC2626; border: none;">Xóa</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

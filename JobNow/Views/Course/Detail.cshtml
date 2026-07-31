@@ -1,0 +1,325 @@
+﻿@model JobNow.Models.Course
+
+@{
+    ViewData["Title"] = Model.Title ?? "Chi tiết khóa học";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Nếu logo trống, tạo avatar tự động bằng UI-Avatars
+    var logoUrl = !string.IsNullOrWhiteSpace(Model.ProviderLogo)
+        ? Model.ProviderLogo
+        : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(Model.ProviderName ?? "Edu")}&background=eff6ff&color=2563eb";
+}
+
+@section Styles {
+    <style>
+        :root {
+            --jn-bg-page: #F8FAFC;
+            --jn-orange: #ea580c;
+            --jn-orange-hover: #c2410c;
+            --jn-border: #e2e8f0;
+            --jn-text-main: #1e293b;
+            --jn-text-muted: #64748b;
+            --jn-dark-blue: #0f172a;
+        }
+
+        body {
+            background-color: var(--jn-bg-page);
+        }
+
+        .detail-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 32px;
+            border: 1px solid var(--jn-border);
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .course-header-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            border: 1px solid var(--jn-border);
+            object-fit: contain;
+            padding: 8px;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--jn-border);
+        }
+
+        .meta-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--jn-text-muted);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .meta-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--jn-text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .meta-value i {
+                font-size: 18px;
+                color: #94a3b8;
+            }
+
+        .text-price {
+            color: #16a34a !important;
+        }
+
+            .text-price i {
+                color: #16a34a !important;
+            }
+
+        .text-danger i {
+            color: #dc2626 !important;
+        }
+
+        .content-section {
+            border-left: 4px solid var(--jn-orange);
+            padding-left: 20px;
+            margin-bottom: 32px;
+        }
+
+            .content-section h5 {
+                font-size: 20px;
+                font-weight: 700;
+                color: var(--jn-text-main);
+                margin-bottom: 16px;
+            }
+
+        .content-body {
+            font-size: 15px;
+            color: #475569;
+            line-height: 1.8;
+        }
+
+        /* Nút Đăng ký lớn */
+        .btn-register-main {
+            background-color: var(--jn-orange);
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 16px;
+            border-radius: 10px;
+            border: none;
+            width: 100%;
+            transition: all 0.2s ease;
+            text-align: center;
+            display: block;
+            text-decoration: none;
+        }
+
+            .btn-register-main:hover {
+                background-color: var(--jn-orange-hover);
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(234, 88, 12, 0.2);
+            }
+
+        /* Action Box */
+        .action-box {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .btn-outline-action {
+            flex: 1;
+            background: white;
+            border: 1px solid var(--jn-border);
+            color: var(--jn-text-main);
+            font-weight: 600;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+            .btn-outline-action:hover {
+                background: var(--jn-bg-page);
+                border-color: #cbd5e1;
+            }
+
+        /* Card Thông tin trung tâm */
+        .provider-card-header {
+            background-color: var(--jn-dark-blue);
+            height: 100px;
+            border-radius: 12px 12px 0 0;
+            position: relative;
+        }
+
+        .provider-card-body {
+            background: white;
+            border: 1px solid var(--jn-border);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            padding: 50px 24px 24px 24px;
+            position: relative;
+        }
+
+        .provider-card-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            background: white;
+            padding: 4px;
+            border: 1px solid var(--jn-border);
+            position: absolute;
+            top: -35px;
+            left: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+    </style>
+}
+
+<div class="container py-5">
+
+    <!-- Nút quay lại -->
+    <a asp-action="Index" class="text-decoration-none text-muted mb-4 d-inline-block fw-semibold hover-orange">
+        <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách khóa học
+    </a>
+
+    <div class="row g-4">
+        <!-- ================= CỘT TRÁI (THÔNG TIN CHI TIẾT) ================= -->
+        <div class="col-lg-8">
+
+            <!-- BLOCK 1: THÔNG TIN TỔNG QUAN -->
+            <div class="detail-card">
+                <div class="d-flex gap-4 align-items-center mb-2">
+                    <img src="@logoUrl" class="course-header-logo" alt="Logo">
+                    <div>
+                        <h1 class="fw-bold text-dark mb-2" style="font-size: 28px;">
+                            @Model.Title
+                        </h1>
+                        <p class="mb-0 fs-5" style="color: var(--jn-orange); font-weight: 600;">
+                            <i class="bi bi-building me-1"></i> @Model.ProviderName
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Lưới thông tin số liệu -->
+                <div class="meta-grid">
+                    <div>
+                        <span class="meta-label">Mức học phí</span>
+                        <span class="meta-value text-price"><i class="bi bi-cash-stack"></i> $@Model.Price</span>
+                    </div>
+                    <div>
+                        <span class="meta-label">Địa điểm học</span>
+                        <span class="meta-value"><i class="bi bi-geo-alt-fill"></i> @(Model.Location ?? "Cập nhật sau")</span>
+                    </div>
+                    <div>
+                        <span class="meta-label">Hình thức</span>
+                        <span class="meta-value"><i class="bi bi-laptop"></i> @(Model.Format ?? "Online")</span>
+                    </div>
+                    <div>
+                        <span class="meta-label">Thời lượng</span>
+                        <span class="meta-value"><i class="bi bi-clock-history"></i> @(Model.Duration ?? "Liên hệ")</span>
+                    </div>
+                    <div>
+                        <span class="meta-label">Lượt truy cập</span>
+                        <span class="meta-value"><i class="bi bi-eye"></i> 1,204 lượt xem</span>
+                    </div>
+                    <div>
+                        <span class="meta-label">Hạn chót đăng ký</span>
+                        <span class="meta-value text-danger">
+                            <i class="bi bi-hourglass-split"></i>
+                            @Model.Deadline.ToString("dd/MM/yyyy")
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BLOCK 2: NỘI DUNG KHÓA HỌC -->
+            <div class="detail-card">
+
+                <div class="content-section">
+                    <h5>Mô tả khóa học</h5>
+                    <div class="content-body">
+                        Khóa học <strong>@Model.Title</strong> được thiết kế chuyên sâu bởi <strong>@Model.ProviderName</strong>. Chương trình cung cấp kiến thức nền tảng vững chắc và kỹ năng thực chiến thông qua các dự án thực tế. Phù hợp cho những ai muốn thăng tiến nhanh trong sự nghiệp hoặc chuẩn bị cho các kỳ thi chứng chỉ quốc tế.
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h5>Kiến thức & Kỹ năng đạt được</h5>
+                    <div class="content-body">
+                        <ul class="mb-0">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Nắm vững lý thuyết chuyên ngành và tư duy hệ thống.</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Thực hành trực tiếp các công nghệ: <strong class="text-dark">@(Model.Tags ?? "Cập nhật sau")</strong>.</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Nhận chứng nhận hoàn thành khóa học từ trung tâm uy tín.</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Được hỗ trợ kết nối việc làm sau khi tốt nghiệp.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="content-section mb-0 border-0">
+                    <h5>Yêu cầu đầu vào</h5>
+                    <div class="content-body">
+                        <p class="mb-0">Không yêu cầu kinh nghiệm trước đó. Chỉ cần máy tính cá nhân kết nối mạng và tinh thần học hỏi nghiêm túc. Phù hợp cho học sinh, sinh viên, và người đi làm muốn chuyển ngành.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================= CỘT PHẢI (ACTION & CÔNG TY) ================= -->
+        <div class="col-lg-4">
+
+            <!-- BLOCK 3: ACTION NỔI (Đứng yên khi cuộn trang) -->
+            <div style="position: sticky; top: 20px;">
+
+                <div class="detail-card border-0 shadow-sm p-4">
+                    <!-- NÚT CHUYỂN HƯỚNG RA TRANG NGOÀI -->
+                    <a href="#" onclick="alert('Đang chuyển hướng bạn sang trang đăng ký chính thức của Đối tác: @Model.ProviderName. Vui lòng đợi trong giây lát...'); return false;" class="btn-register-main mb-3">
+                        <i class="bi bi-mortarboard-fill me-2"></i> Đăng ký ngay
+                    </a>
+
+                    <div class="action-box">
+                        <button class="btn-outline-action"><i class="bi bi-bookmark me-1"></i> Lưu lại</button>
+                        <button class="btn-outline-action"><i class="bi bi-share me-1"></i> Chia sẻ</button>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <a href="#" class="text-decoration-none text-warning small fw-bold">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Báo cáo khóa học này
+                        </a>
+                    </div>
+                </div>
+
+                <!-- BLOCK 4: THÔNG TIN TRUNG TÂM -->
+                <div class="mb-4">
+                    <div class="provider-card-header"></div>
+                    <div class="provider-card-body">
+                        <img src="@logoUrl" class="provider-card-logo" alt="Logo">
+                        <h5 class="fw-bold text-dark mb-1">@Model.ProviderName</h5>
+                        <p class="text-muted small mb-4">Đối tác giáo dục & đào tạo uy tín hàng đầu.</p>
+
+                        <div class="d-flex flex-column gap-3 mb-4 small fw-semibold text-muted">
+                            <div class="d-flex align-items-center"><i class="bi bi-journal-bookmark-fill fs-5 me-3" style="color: var(--jn-orange);"></i> Cung cấp 15+ khóa học</div>
+                            <div class="d-flex align-items-center"><i class="bi bi-people-fill fs-5 me-3 text-primary"></i> Cộng đồng 5000+ học viên</div>
+                            <div class="d-flex align-items-center"><i class="bi bi-geo-alt-fill fs-5 me-3 text-danger"></i> Trụ sở: @(Model.Location ?? "Việt Nam")</div>
+                        </div>
+
+                        <button class="btn btn-outline-secondary w-100 fw-bold">Xem chi tiết trung tâm</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,432 @@
+@{
+    ViewData["Title"] = "Employer Workspace";
+}
+
+<style>
+    /* === GLOBAL WORKSPACE STYLES === */
+    body {
+        background-color: #F8FAFC !important;
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .jn-workspace-container {
+        padding: 32px;
+    }
+
+    /* === TOP SECTION (COMPANY INFO & CTA) === */
+    .jn-top-header {
+        background-color: #FFFFFF;
+        border-radius: 12px;
+        padding: 24px 32px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid #e2e8f0;
+    }
+
+    .jn-company-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .jn-company-logo {
+        width: 64px;
+        height: 64px;
+        background-color: #FFFFFF;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+        border: 1px solid #E5E7EB;
+        font-size: 1.5rem;
+        color: #F97316;
+    }
+
+    .jn-company-details h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1F2937;
+        margin-bottom: 4px;
+    }
+
+    .jn-company-details p {
+        font-size: 0.95rem;
+        color: #6B7280;
+        margin-bottom: 0;
+    }
+
+    .btn-primary-custom {
+        background-color: #F97316;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary-custom:hover {
+        background-color: #EA580C;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    /* === COMPACT SUMMARY WIDGETS === */
+    .jn-summary-row {
+        margin-bottom: 24px;
+    }
+
+    .jn-summary-card {
+        background-color: #FFFFFF;
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .jn-summary-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .icon-orange { background-color: #FFEDD5; color: #F97316; }
+    .icon-green { background-color: #dcfce7; color: #16A34A; }
+    .icon-red { background-color: #fee2e2; color: #DC2626; }
+    .icon-purple { background-color: #f3e8ff; color: #9333ea; }
+
+    .jn-summary-details h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .jn-summary-details span {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* === MAIN CONTENT CARDS === */
+    .jn-panel {
+        background-color: #FFFFFF;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .jn-panel-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .jn-panel-header h5 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1F2937;
+    }
+
+    /* Table Styles */
+    .jn-table {
+        margin: 0;
+        width: 100%;
+    }
+
+    .jn-table th {
+        background-color: #F8FAFC;
+        color: #6B7280;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 24px;
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    .jn-table td {
+        padding: 16px 24px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+        font-size: 0.95rem;
+    }
+
+    .jn-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .jn-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .badge-status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-active { background-color: #dcfce7; color: #16A34A; }
+    .badge-draft { background-color: #f3f4f6; color: #6B7280; }
+
+    .btn-icon {
+        color: #9CA3AF;
+        background: none;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
+        color: #F97316;
+        background-color: #FFEDD5;
+    }
+
+    .activity-marker {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #F97316;
+        margin-top: 6px;
+        position: relative;
+    }
+    
+    .activity-marker::after {
+        content: '';
+        position: absolute;
+        width: 2px;
+        height: 40px;
+        background-color: #E5E7EB;
+        top: 14px;
+        left: 4px;
+    }
+
+    .jn-activity-item:last-child .activity-marker::after {
+        display: none;
+    }
+
+    .activity-content p {
+        margin: 0 0 4px 0;
+        font-size: 0.95rem;
+        color: #1F2937;
+        font-weight: 500;
+    }
+
+    .activity-content small {
+        color: #6B7280;
+        font-size: 0.8rem;
+    }
+</style>
+
+<div class="row g-0">
+    <!-- === LEFT SIDEBAR === -->
+    <div class="col-auto">
+        @await Html.PartialAsync("Employer/_EmployerSidebar")
+    </div>
+
+    <!-- === RIGHT CONTENT === -->
+    <div class="col">
+        <div class="jn-workspace-container">
+            
+            <!-- Top Section -->
+            <div class="jn-top-header">
+                <div class="jn-company-info">
+                    <div class="jn-company-logo">
+                        <i class="bi bi-buildings"></i>
+                    </div>
+                    <div class="jn-company-details">
+                        <h1>Công ty Cổ phần JobNow</h1>
+                        <p>Chào mừng trở lại, Đội ngũ Tuyển dụng</p>
+                    </div>
+                </div>
+                <div>
+                    <a asp-controller="Employer" asp-action="CreateJob" class="btn-primary-custom">
+                        <i class="bi bi-plus-lg"></i> Đăng tin tuyển dụng
+                    </a>
+                </div>
+            </div>
+
+            <!-- Compact Summary Section -->
+            <div class="row g-4 jn-summary-row">
+                <div class="col-md-3">
+                    <div class="jn-summary-card">
+                        <div class="jn-summary-icon icon-orange">
+                            <i class="bi bi-file-text"></i>
+                        </div>
+                        <div class="jn-summary-details">
+                            <h3>@ViewBag.TotalJobs</h3>
+                            <span>Tổng tin đăng</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="jn-summary-card">
+                        <div class="jn-summary-icon icon-green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="jn-summary-details">
+                            <h3>@ViewBag.ActiveJobs</h3>
+                            <span>Đang tuyển</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="jn-summary-card">
+                        <div class="jn-summary-icon icon-red">
+                            <i class="bi bi-exclamation-circle"></i>
+                        </div>
+                        <div class="jn-summary-details">
+                            <h3>@ViewBag.ExpiredJobs</h3>
+                            <span>Đã hết hạn</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="jn-summary-card">
+                        <div class="jn-summary-icon icon-purple">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div class="jn-summary-details">
+                            <h3>@ViewBag.TotalApplicants</h3>
+                            <span>Hồ sơ mới</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content: Jobs & Activities -->
+            <div class="row g-4">
+                
+                <!-- Recent Job Posts -->
+                <div class="col-lg-8">
+                    <div class="jn-panel">
+                        <div class="jn-panel-header">
+                            <h5>Tin tuyển dụng gần đây</h5>
+                            <a asp-controller="Employer" asp-action="MyJobs" class="text-decoration-none" style="color: #F97316; font-size: 0.9rem; font-weight: 600;">Xem tất cả</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="jn-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tiêu đề</th>
+                                        <th>Trạng thái</th>
+                                        <th>Ngày đăng</th>
+                                        <th>Hồ sơ</th>
+                                        <th class="text-end">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dữ liệu mô phỏng để hiển thị UI -->
+                                    <tr>
+                                        <td>
+                                            <strong class="text-dark">Senior ASP.NET Core Developer</strong><br />
+                                            <small class="text-muted">Hồ Chí Minh • Toàn thời gian</small>
+                                        </td>
+                                        <td><span class="badge-status badge-active">Đang tuyển</span></td>
+                                        <td>20 Th10, 2023</td>
+                                        <td><strong>24</strong> ứng viên</td>
+                                        <td class="text-end">
+                                            <button class="btn-icon" title="Xem"><i class="bi bi-eye"></i></button>
+                                            <button class="btn-icon" title="Chỉnh sửa"><i class="bi bi-pencil"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong class="text-dark">Frontend VueJS Engineer</strong><br />
+                                            <small class="text-muted">Hà Nội • Từ xa</small>
+                                        </td>
+                                        <td><span class="badge-status badge-active">Đang tuyển</span></td>
+                                        <td>18 Th10, 2023</td>
+                                        <td><strong>12</strong> ứng viên</td>
+                                        <td class="text-end">
+                                            <button class="btn-icon" title="Xem"><i class="bi bi-eye"></i></button>
+                                            <button class="btn-icon" title="Chỉnh sửa"><i class="bi bi-pencil"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong class="text-dark">Product Manager</strong><br />
+                                            <small class="text-muted">Đà Nẵng • Toàn thời gian</small>
+                                        </td>
+                                        <td><span class="badge-status badge-draft">Bản nháp</span></td>
+                                        <td>15 Th10, 2023</td>
+                                        <td><strong>0</strong> ứng viên</td>
+                                        <td class="text-end">
+                                            <button class="btn-icon" title="Xem"><i class="bi bi-eye"></i></button>
+                                            <button class="btn-icon" title="Chỉnh sửa"><i class="bi bi-pencil"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activities -->
+                <div class="col-lg-4">
+                    <div class="jn-panel">
+                        <div class="jn-panel-header">
+                            <h5>Hoạt động gần đây</h5>
+                        </div>
+                        <ul class="jn-activity-list">
+                            <li class="jn-activity-item">
+                                <div class="activity-marker"></div>
+                                <div class="activity-content">
+                                    <p>Ứng viên mới đã ứng tuyển vào <strong>Senior ASP.NET Core Developer</strong></p>
+                                    <small><i class="bi bi-clock me-1"></i> 2 giờ trước</small>
+                                </div>
+                            </li>
+                            <li class="jn-activity-item">
+                                <div class="activity-marker" style="background-color: #16A34A;"></div>
+                                <div class="activity-content">
+                                    <p>Tin <strong>Frontend VueJS Engineer</strong> đã được duyệt</p>
+                                    <small><i class="bi bi-clock me-1"></i> 1 ngày trước</small>
+                                </div>
+                            </li>
+                            <li class="jn-activity-item">
+                                <div class="activity-marker" style="background-color: #9333ea;"></div>
+                                <div class="activity-content">
+                                    <p>Hồ sơ công ty đã được cập nhật</p>
+                                    <small><i class="bi bi-clock me-1"></i> 2 ngày trước</small>
+                                </div>
+                            </li>
+                            <li class="jn-activity-item">
+                                <div class="activity-marker" style="background-color: #DC2626;"></div>
+                                <div class="activity-content">
+                                    <p>Tin <strong>Product Manager</strong> sẽ hết hạn trong 3 ngày tới</p>
+                                    <small><i class="bi bi-clock me-1"></i> 2 ngày trước</small>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,182 @@
+@model JobNow.ViewModels.CompanyProfileViewModel
+@{
+    ViewData["Title"] = "Hồ Sơ Công Ty";
+}
+
+<style>
+    /* === GLOBAL WORKSPACE STYLES === */
+    body {
+        background-color: #F8FAFC !important;
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .jn-workspace-container {
+        padding: 32px;
+    }
+
+    /* === PANEL & FORM === */
+    .jn-panel {
+        background-color: #FFFFFF;
+        border-radius: 12px;
+        border: 1px solid #E5E7EB;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        margin-bottom: 24px;
+    }
+
+    .jn-panel-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+    .jn-panel-header h5 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1F2937;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .jn-panel-body {
+        padding: 24px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 0.88rem;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        color: #1F2937;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #F97316;
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+    }
+
+    .btn-primary-custom {
+        background-color: #F97316;
+        color: white;
+        border: none;
+        padding: 12px 32px;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary-custom:hover {
+        background-color: #EA580C;
+        color: white;
+        transform: translateY(-1px);
+    }
+</style>
+
+<div class="row g-0">
+    <div class="col-auto">
+        @await Html.PartialAsync("Employer/_EmployerSidebar")
+    </div>
+    <div class="col">
+        <div class="jn-workspace-container">
+            <div class="mb-4">
+                <h4 class="fw-bold mb-1 text-dark">Hồ sơ công ty</h4>
+                <p class="text-muted mb-0">Quản lý thông tin chi tiết về doanh nghiệp của bạn</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success shadow-sm border-0 mb-4" style="border-radius: 12px;">
+                    <strong>Thành công!</strong> @TempData["SuccessMessage"]
+                </div>
+            }
+            @if (ViewBag.ErrorMessage != null)
+            {
+                <div class="alert alert-danger shadow-sm border-0 mb-4" style="border-radius: 12px;">
+                    <strong>Lỗi:</strong> @ViewBag.ErrorMessage
+                </div>
+            }
+
+            <form method="post" asp-controller="Employer" asp-action="CompanyProfilePost">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="jn-panel">
+                    <div class="jn-panel-header">
+                        <h5><i class="bi bi-building text-muted"></i> Thông tin công ty</h5>
+                    </div>
+                    <div class="jn-panel-body">
+                        <div class="row g-4">
+                            <div class="col-md-12 text-center mb-2">
+                                <img src="@(string.IsNullOrEmpty(Model.LogoUrl) ? "https://via.placeholder.com/150" : Model.LogoUrl)" alt="Company Logo" class="img-thumbnail rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #F1F5F9;">
+                                <div class="mx-auto" style="max-width: 400px;">
+                                    <label asp-for="LogoUrl" class="form-label d-block text-start">URL Logo (Tạm thời nhập link)</label>
+                                    <input asp-for="LogoUrl" class="form-control" placeholder="https://example.com/logo.png">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Name" class="form-label">Tên công ty <span class="text-danger">*</span></label>
+                                <input asp-for="Name" class="form-control" placeholder="VD: Công ty TNHH ABC">
+                                <span asp-validation-for="Name" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Website" class="form-label">Website</label>
+                                <input asp-for="Website" class="form-control" placeholder="https://www.yourcompany.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label">Email liên hệ</label>
+                                <input asp-for="Email" class="form-control" placeholder="contact@yourcompany.com">
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Phone" class="form-label">Số điện thoại</label>
+                                <input asp-for="Phone" class="form-control" placeholder="0123 456 789">
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="CompanySize" class="form-label">Quy mô công ty</label>
+                                <select asp-for="CompanySize" class="form-select">
+                                    <option value="">-- Chọn quy mô --</option>
+                                    <option value="1-10 nhân viên">1-10 nhân viên</option>
+                                    <option value="11-50 nhân viên">11-50 nhân viên</option>
+                                    <option value="51-200 nhân viên">51-200 nhân viên</option>
+                                    <option value="201-500 nhân viên">201-500 nhân viên</option>
+                                    <option value="500+ nhân viên">500+ nhân viên</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Address" class="form-label">Địa chỉ</label>
+                                <input asp-for="Address" class="form-control" placeholder="Số nhà, đường, quận, thành phố...">
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Description" class="form-label">Mô tả công ty</label>
+                                <textarea asp-for="Description" class="form-control" style="min-height: 150px" placeholder="Giới thiệu về lịch sử, sứ mệnh, tầm nhìn và môi trường làm việc của công ty..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mb-4">
+                    <button type="submit" class="btn-primary-custom">
+                        <i class="bi bi-floppy"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

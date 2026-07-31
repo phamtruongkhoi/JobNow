@@ -155,17 +155,19 @@
                             <div class="d-flex">
                                 <img src="@course.ProviderLogo" alt="Logo" class="rounded border me-3" style="width: 56px; height: 56px; object-fit: contain; padding: 4px;">
                                 <div>
-                                    <h5 class="fw-bold mb-1 d-flex align-items-center">
-                                        @course.Title
-                                        @if (course.IsHot)
-                                        {
-                                            <span class="badge badge-hot ms-2 px-2 py-1">HOT</span>
-                                        }
-                                        @if (course.IsNew)
-                                        {
-                                            <span class="badge badge-new ms-2 px-2 py-1">MỚI</span>
-                                        }
-                                    </h5>
+                                    <a asp-action="Detail" asp-controller="Course" asp-route-id="@course.Id" class="text-decoration-none text-dark">
+                                        <h5 class="fw-bold mb-1 d-flex align-items-center">
+                                            @course.Title
+                                            @if (course.IsHot)
+                                            {
+                                                <span class="badge badge-hot ms-2 px-2 py-1">HOT</span>
+                                            }
+                                            @if (course.IsNew)
+                                            {
+                                                <span class="badge badge-new ms-2 px-2 py-1">MỚI</span>
+                                            }
+                                        </h5>
+                                    </a>
                                     <p class="text-orange fw-bold small mb-0">@course.ProviderName</p>
                                 </div>
                             </div>
@@ -189,7 +191,9 @@
                                     }
                                 }
                             </div>
-                            <button class="btn btn-apply px-4 py-1">Đăng kí ngay</button>
+                            <a asp-action="Detail" asp-controller="Course" asp-route-id="@course.Id" class="btn btn-apply px-4 py-1 text-decoration-none">
+                                Xem chi tiết
+                            </a>
                         </div>
                     </div>
                 }

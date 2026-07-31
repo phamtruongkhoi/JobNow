@@ -76,5 +76,27 @@ namespace JobNow.Controllers
                 return View(new System.Collections.Generic.List<Course>());
             }
         }
+        // Thêm hàm này vào dưới hàm Index()
+        public async Task<IActionResult> Detail(int id)
+        {
+            try
+            {
+                // Chọc xuống Supabase lấy đúng khóa học theo ID
+                var course = await _supabase.From<Course>().Where(c => c.Id == id).Single();
+
+                if (course == null)
+                {
+                    TempData["Error"] = "Không tìm thấy khóa học này hoặc đã bị xóa.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                return View(course);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi kết nối khi tải chi tiết khóa học: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
     }
 }

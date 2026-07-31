@@ -22,6 +22,9 @@ namespace JobNow.ViewModels
         // Danh sách việc làm đã lưu của ứng viên (kết hợp với bảng jn_jobs)
         public List<SavedJob> SavedJobs { get; set; } = new List<SavedJob>();
 
+        // Danh sách việc làm đã ứng tuyển
+        public List<Application> Applications { get; set; } = new List<Application>();
+
         /// <summary>
         /// Kiểm tra hồ sơ có đang ở trạng thái trống (Empty State) hay không.
         /// </summary>

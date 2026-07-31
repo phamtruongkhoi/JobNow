@@ -1,0 +1,86 @@
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<style>
+    .admin-sidebar {
+        background-color: #0f172a;
+        min-height: calc(100vh - 76px);
+        padding: 30px 15px; 
+        border-radius: 0;
+        width: 260px;
+        color: #f8fafc;
+    }
+
+    .admin-sidebar-header {
+        font-size: 1.1rem;
+        font-weight: 700;
+        padding: 0 10px 20px 10px;
+        border-bottom: 1px solid #1e293b;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #94a3b8;
+    }
+
+    .admin-sidebar .nav-link {
+        color: #cbd5e1;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: 8px;
+        margin-bottom: 6px;
+        transition: all 0.2s;
+    }
+
+    .admin-sidebar .nav-link:hover {
+        color: #ffffff;
+        background-color: #1e293b;
+        transform: translateX(4px);
+    }
+
+    .admin-sidebar .nav-link.active {
+        color: #ffffff;
+        background-color: #2563eb;
+        font-weight: 600;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.4);
+    }
+
+    .admin-sidebar .nav-link i {
+        margin-right: 12px;
+        font-size: 1.1rem;
+    }
+</style>
+
+<nav class="admin-sidebar">
+    <div class="admin-sidebar-header">
+        <i class="bi bi-shield-lock me-2"></i> QUẢN TRỊ VIÊN
+    </div>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link @(currentAction == "Index" ? "active" : "")" asp-controller="Admin" asp-action="Index">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentAction == "Users" ? "active" : "")" asp-controller="Admin" asp-action="Users">
+                <i class="bi bi-people"></i> Quản lý Users
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentAction == "Employers" ? "active" : "")" asp-controller="Admin" asp-action="Employers">
+                <i class="bi bi-buildings"></i> Quản lý Nhà Tuyển Dụng
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentAction == "Jobs" ? "active" : "")" asp-controller="Admin" asp-action="Jobs">
+                <i class="bi bi-briefcase"></i> Quản lý Tin Tuyển Dụng
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentAction == "Courses" ? "active" : "")" asp-controller="Admin" asp-action="Courses">
+                <i class="bi bi-book"></i> Quản lý Khóa Học
+            </a>
+        </li>
+    </ul>
+</nav>

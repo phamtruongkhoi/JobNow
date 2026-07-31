@@ -1,4 +1,4 @@
-﻿@model JobNow.Models.Job
+@model JobNow.Models.Job
 
 @{
     ViewData["Title"] = Model.Title;
@@ -203,7 +203,14 @@
 
             <!-- Hành động Ứng tuyển -->
             <div class="job-card mb-4 shadow-sm text-center">
-                <button class="btn-apply-lg mb-3">Ứng tuyển ngay</button>
+                @if (ViewBag.HasApplied != null && ViewBag.HasApplied)
+                {
+                    <button class="btn-apply-lg mb-3" disabled style="background-color: #94a3b8; cursor: not-allowed;">Đã ứng tuyển</button>
+                }
+                else
+                {
+                    <a href="/Job/Apply/@Model.Id" class="btn-apply-lg mb-3 d-block text-decoration-none">Ứng tuyển ngay</a>
+                }
                 <div class="d-flex gap-2 mb-3">
                     <button class="btn-outline"><i class="bi bi-bookmark"></i> Lưu</button>
                     <button class="btn-outline"><i class="bi bi-share"></i> Chia sẻ</button>

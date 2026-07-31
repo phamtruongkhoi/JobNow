@@ -1,0 +1,91 @@
+@model IEnumerable<JobNow.Models.Course>
+
+@{
+    ViewData["Title"] = "Quản lý Khóa học";
+}
+
+<style>
+    .jn-workspace-container { background-color: #F8FAFC; min-height: calc(100vh - 76px); padding: 30px; }
+    .jn-panel { background: #FFFFFF; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 24px; }
+    .jn-table th { background-color: #F8FAFC; color: #6B7280; font-size: 0.8rem; text-transform: uppercase; padding: 12px 24px; border-bottom: 1px solid #E5E7EB; }
+    .jn-table td { padding: 16px 24px; vertical-align: middle; border-bottom: 1px solid #F1F5F9; font-size: 0.95rem; }
+    .btn-primary-custom { background-color: #F97316; color: white; border: none; padding: 10px 20px; font-weight: 600; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-icon { color: #9CA3AF; padding: 6px 10px; border-radius: 6px; display: inline-flex; text-decoration: none; border: none; background: transparent; }
+    .btn-icon:hover { color: #F97316; background-color: #FFEDD5; }
+    .btn-icon-danger:hover { color: #DC2626; background-color: #fee2e2; }
+</style>
+
+<div class="row g-0">
+    <div class="col-auto">
+        @await Html.PartialAsync("Employer/_EmployerSidebar")
+    </div>
+    <div class="col">
+        <div class="jn-workspace-container">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success shadow-sm border-0 mb-4" style="border-radius: 12px;">@TempData["SuccessMessage"]</div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger shadow-sm border-0 mb-4" style="border-radius: 12px;">@TempData["ErrorMessage"]</div>
+            }
+
+            <div class="jn-panel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="fw-bold">Khóa học của tôi</h4>
+                        <p class="text-muted mb-0">Quản lý các khóa học bạn đã đăng</p>
+                    </div>
+                    <a asp-action="CreateCourse" class="btn-primary-custom"><i class="bi bi-plus-lg"></i> Thêm Khóa học</a>
+                </div>
+
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-book fs-1 text-muted mb-3 d-block"></i>
+                        <h5 class="fw-bold">Chưa có khóa học nào</h5>
+                        <p class="text-muted">Đăng khóa học đầu tiên để thu hút ứng viên</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table jn-table">
+                            <thead>
+                                <tr>
+                                    <th>Khóa học</th>
+                                    <th>Thời lượng</th>
+                                    <th>Học phí</th>
+                                    <th>Hạn đăng ký</th>
+                                    <th class="text-end">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var course in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold">@course.Title</div>
+                                            <small class="text-muted">@course.ProviderName</small>
+                                        </td>
+                                        <td>@course.Duration</td>
+                                        <td>@course.Price</td>
+                                        <td>@course.Deadline.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-end">
+                                            <a asp-controller="Course" asp-action="Details" asp-route-id="@course.Id" class="btn-icon" title="Xem"><i class="bi bi-eye"></i></a>
+                                            <a asp-action="EditCourse" asp-route-id="@course.Id" class="btn-icon" title="Sửa"><i class="bi bi-pencil"></i></a>
+                                            <form asp-action="DeleteCourse" asp-route-id="@course.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa khóa học này?');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn-icon btn-icon-danger"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

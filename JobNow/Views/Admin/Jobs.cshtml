@@ -1,0 +1,58 @@
+@model IEnumerable<JobNow.Models.Job>
+
+@{
+    ViewData["Title"] = "Quản lý Tin Tuyển Dụng";
+}
+
+<div class="row g-0">
+    <div class="col-auto">
+        @await Html.PartialAsync("_AdminSidebar")
+    </div>
+    <div class="col" style="background-color: #f1f5f9; padding: 30px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold">Quản lý Tin Tuyển Dụng</h3>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success shadow-sm rounded-4">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger shadow-sm rounded-4">@TempData["ErrorMessage"]</div>
+        }
+
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tiêu đề</th>
+                            <th>Công ty</th>
+                            <th>Lương</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var job in Model)
+                        {
+                            <tr>
+                                <td><div class="fw-bold">@job.Title</div><small class="text-muted">@job.Location</small></td>
+                                <td>@job.CompanyName</td>
+                                <td>@job.Salary</td>
+                                <td><span class="badge bg-secondary">@job.Status</span></td>
+                                <td class="text-end">
+                                    <form asp-action="DeleteJob" asp-route-id="@job.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tin này?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Xóa</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

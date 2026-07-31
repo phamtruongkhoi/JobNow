@@ -1,0 +1,82 @@
+@model JobNow.ViewModels.CreateCourseViewModel
+
+@{
+    ViewData["Title"] = "Thêm Khóa Học";
+}
+
+<style>
+    .jn-workspace-container { background-color: #F8FAFC; min-height: calc(100vh - 76px); padding: 30px; }
+    .jn-panel { background: #FFFFFF; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 24px; }
+    .form-label { font-weight: 600; color: #374151; }
+</style>
+
+<div class="row g-0">
+    <div class="col-auto">
+        @await Html.PartialAsync("Employer/_EmployerSidebar")
+    </div>
+    <div class="col">
+        <div class="jn-workspace-container">
+            <div class="jn-panel">
+                <h4 class="fw-bold mb-4">Thêm Khóa Học Mới</h4>
+                
+                <form asp-action="CreateCourse" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Title" class="form-label">Tên khóa học</label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ProviderName" class="form-label">Tên Trung Tâm</label>
+                            <input asp-for="ProviderName" class="form-control" />
+                            <span asp-validation-for="ProviderName" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Price" class="form-label">Học phí</label>
+                            <input asp-for="Price" class="form-control" placeholder="VD: 5,000,000 VNĐ" />
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Deadline" class="form-label">Hạn đăng ký</label>
+                            <input asp-for="Deadline" class="form-control" type="date" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="Location" class="form-label">Địa điểm</label>
+                            <input asp-for="Location" class="form-control" placeholder="VD: Hà Nội hoặc Online" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Duration" class="form-label">Thời lượng</label>
+                            <input asp-for="Duration" class="form-control" placeholder="VD: 3 Tháng" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Format" class="form-label">Hình thức</label>
+                            <select asp-for="Format" class="form-select">
+                                <option value="Online">Online</option>
+                                <option value="Offline">Offline</option>
+                                <option value="Hybrid">Hybrid</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Tags" class="form-label">Tags (Cách nhau bằng dấu phẩy)</label>
+                        <input asp-for="Tags" class="form-control" placeholder="VD: IT, Lập trình, Tiếng Anh" />
+                    </div>
+
+                    <div class="text-end">
+                        <a asp-action="MyCourses" class="btn btn-light me-2">Hủy</a>
+                        <button type="submit" class="btn btn-warning fw-bold text-white" style="background-color: #F97316; border:none;">Lưu Khóa Học</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

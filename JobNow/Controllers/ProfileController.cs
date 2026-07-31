@@ -151,13 +151,56 @@ namespace JobNow.Controllers
                     savedJobs = new List<SavedJob>();
                 }
 
-                // 1.5. Đóng gói dữ liệu vào ViewModel để gửi sang Razor View
+                // 1.5. Truy vấn danh sách việc làm đã ứng tuyển (Applications)
+                List<Application> applications = new List<Application>();
+                try
+                {
+                    var appRes = await _supabase.From<Application>()
+                        .Where(a => a.ProfileId == userId)
+                        .Order("applied_at", Postgrest.Constants.Ordering.Descending)
+                        .Get();
+
+                    if (appRes.Models != null && appRes.Models.Count > 0)
+                    {
+                        applications = appRes.Models;
+
+                        // Truy vấn thông tin Job
+                        var appJobIds = applications.Select(a => a.JobId).Distinct().ToList();
+                        var appJobsRes = await _supabase.From<Job>()
+                            .Where(j => appJobIds.Contains(j.Id))
+                            .Get();
+
+                        var appJobsMap = new Dictionary<int, Job>();
+                        if (appJobsRes.Models != null)
+                        {
+                            foreach (var j in appJobsRes.Models)
+                            {
+                                appJobsMap[j.Id] = j;
+                            }
+                        }
+
+                        foreach (var app in applications)
+                        {
+                            if (app.Job == null && appJobsMap.TryGetValue(app.JobId, out var jobObj))
+                            {
+                                app.Job = jobObj;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    applications = new List<Application>();
+                }
+
+                // 1.6. Đóng gói dữ liệu vào ViewModel để gửi sang Razor View
                 var viewModel = new ProfileViewModel
                 {
                     Profile = profile,
                     WorkHistories = workHistories,
                     CVs = userCVs,
-                    SavedJobs = savedJobs
+                    SavedJobs = savedJobs,
+                    Applications = applications
                 };
 
                 return View(viewModel);

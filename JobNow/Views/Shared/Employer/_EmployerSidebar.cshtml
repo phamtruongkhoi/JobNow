@@ -1,0 +1,246 @@
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<style>
+    /* === SIDEBAR === */
+    .jn-sidebar {
+        background-color: #FFFFFF;
+        min-height: calc(100vh - 80px);
+        padding: 30px 15px; 
+        border-radius: 0;
+        width: 80px; /* Collapsed by default */
+        transition: width 0.3s ease;
+        overflow-x: hidden;
+        white-space: nowrap;
+        display: flex;
+        flex-direction: column;
+        color: #1F2937;
+        border-right: 1px solid #E5E7EB;
+    }
+
+    .jn-sidebar.expanded {
+        width: 260px;
+    }
+
+    .jn-sidebar-header {
+        color: #1F2937;
+        font-size: 1.05rem;
+        font-weight: 700;
+        padding: 0 5px 20px 5px;
+        border-bottom: 1px solid #E5E7EB;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+    }
+
+    .sidebar-category {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #9CA3AF;
+        margin: 15px 0 5px 15px;
+        font-weight: 600;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .jn-sidebar.expanded .sidebar-category {
+        opacity: 1;
+        transition: opacity 0.3s ease 0.1s;
+    }
+
+    .jn-sidebar .nav-item {
+        margin-bottom: 4px;
+    }
+
+    .jn-sidebar .nav-link {
+        color: #6B7280;
+        padding: 12px 10px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+    }
+
+    .jn-sidebar.expanded .nav-link {
+        padding: 12px 16px;
+    }
+
+    .jn-sidebar .nav-link:hover {
+        color: #F97316;
+        background-color: #F3F4F6;
+        transform: translateX(4px);
+    }
+
+    .jn-sidebar .nav-link.active {
+        color: #EA580C;
+        background-color: #FFEDD5;
+        font-weight: 600;
+        box-shadow: inset 4px 0 0 0 #F97316;
+    }
+
+    .jn-sidebar .sidebar-icon {
+        font-size: 1.2rem;
+        text-align: center;
+        width: 30px;
+        flex-shrink: 0;
+        margin-right: 0;
+        line-height: 1;
+        transition: transform 0.2s ease, margin-right 0.3s ease;
+    }
+
+    .jn-sidebar.expanded .sidebar-icon {
+        margin-right: 12px;
+    }
+
+    .jn-sidebar .nav-link:hover .sidebar-icon {
+        transform: scale(1.1);
+    }
+    
+    .jn-sidebar .nav-text {
+        opacity: 0;
+        width: 0;
+        display: inline-block;
+        transition: opacity 0.2s ease, width 0.3s ease;
+    }
+    
+    .jn-sidebar.expanded .nav-text {
+        opacity: 1;
+        width: auto;
+        transition: opacity 0.3s ease 0.1s, width 0.3s ease;
+    }
+    
+    .btn-toggle-sidebar {
+        background: transparent;
+        border: none;
+        color: #6B7280;
+        cursor: pointer;
+        padding: 0;
+        margin-right: 0;
+        width: 30px;
+        flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: color 0.2s ease;
+    }
+    
+    .btn-toggle-sidebar:hover {
+        color: #F97316;
+    }
+    
+    .jn-sidebar.expanded .btn-toggle-sidebar {
+        margin-right: 12px;
+    }
+</style>
+
+<nav class="jn-sidebar" id="employerSidebar">
+    <div class="jn-sidebar-header">
+        <button id="btnToggleSidebar" class="btn-toggle-sidebar">
+            <i class="bi bi-list fs-4"></i>
+        </button>
+        <span class="nav-text fw-bold">QUẢN LÝ</span>
+    </div>
+    <ul class="nav flex-column w-100">
+        <!-- Workspace -->
+        <li class="sidebar-category">Không gian làm việc</li>
+        <li class="nav-item">
+            <a class="nav-link @(currentAction == "Index" ? "active" : "")" asp-controller="Employer" asp-action="Index">
+                <i class="bi bi-grid-1x2 sidebar-icon"></i> 
+                <span class="nav-text">Tổng quan</span>
+            </a>
+        </li>
+
+        <!-- Recruitment -->
+        <li class="sidebar-category">Tuyển dụng</li>
+        <li class="nav-item">
+            <a class="nav-link @(currentAction == "MyJobs" || currentAction == "EditJob" ? "active" : "")" asp-controller="Employer" asp-action="MyJobs">
+                <i class="bi bi-briefcase sidebar-icon"></i> 
+                <span class="nav-text">Tin tuyển dụng</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentAction == "CreateJob" ? "active" : "")" asp-controller="Employer" asp-action="CreateJob">
+                <i class="bi bi-plus-square sidebar-icon"></i> 
+                <span class="nav-text">Đăng tin tuyển dụng</span>
+            </a>
+        </li>
+
+        <!-- Courses -->
+        <li class="sidebar-category">Khóa Học</li>
+        <li class="nav-item">
+            <a class="nav-link @(currentAction == "MyCourses" || currentAction == "EditCourse" ? "active" : "")" asp-controller="Employer" asp-action="MyCourses">
+                <i class="bi bi-book sidebar-icon"></i> 
+                <span class="nav-text">Quản lý khóa học</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentAction == "CreateCourse" ? "active" : "")" asp-controller="Employer" asp-action="CreateCourse">
+                <i class="bi bi-journal-plus sidebar-icon"></i> 
+                <span class="nav-text">Thêm khóa học</span>
+            </a>
+        </li>
+
+        <!-- Company -->
+        <li class="sidebar-category">Công ty</li>
+        <li class="nav-item">
+            <a class="nav-link @(currentAction == "CompanyProfile" ? "active" : "")" asp-controller="Employer" asp-action="CompanyProfile">
+                <i class="bi bi-buildings sidebar-icon"></i> 
+                <span class="nav-text">Hồ sơ công ty</span>
+            </a>
+        </li>
+
+        <!-- System -->
+        <li class="sidebar-category">Hệ thống</li>
+        <li class="nav-item">
+            <a class="nav-link @(currentAction == "Settings" ? "active" : "")" asp-controller="Employer" asp-action="Settings">
+                <i class="bi bi-gear sidebar-icon"></i> 
+                <span class="nav-text">Cài đặt</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleBtn = document.getElementById("btnToggleSidebar");
+        const sidebar = document.getElementById("employerSidebar");
+        
+        if (toggleBtn && sidebar) {
+            toggleBtn.addEventListener("click", function () {
+                sidebar.classList.toggle("expanded");
+                // Save state to localStorage so it persists across pages
+                if (sidebar.classList.contains("expanded")) {
+                    localStorage.setItem("employerSidebarExpanded", "true");
+                } else {
+                    localStorage.setItem("employerSidebarExpanded", "false");
+                }
+            });
+            
+            // Restore state on load
+            if (localStorage.getItem("employerSidebarExpanded") === "true") {
+                sidebar.classList.add("expanded");
+            }
+            
+            // Make sure the parent grid adjusts appropriately
+            // By default views use .col-md-2 and .col-md-10 which limits flexibility.
+            // We'll dynamically switch them to .col-auto and .col for smooth flex behavior.
+            const sidebarParent = sidebar.closest('.col-md-2');
+            if (sidebarParent) {
+                sidebarParent.classList.remove('col-md-2');
+                sidebarParent.classList.add('col-auto');
+                
+                const contentParent = sidebarParent.nextElementSibling;
+                if (contentParent && contentParent.classList.contains('col-md-10')) {
+                    contentParent.classList.remove('col-md-10');
+                    contentParent.classList.add('col');
+                }
+            }
+        }
+    });
+</script>

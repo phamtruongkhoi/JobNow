@@ -1,0 +1,90 @@
+@model JobNow.ViewModels.ApplyJobViewModel
+
+@{
+    ViewData["Title"] = "Ứng tuyển - " + Model.Job.Title;
+}
+
+<style>
+    body { background-color: #F8FAFC; }
+    .job-card {
+        background-color: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    .btn-apply-lg {
+        background-color: #ff6b00;
+        color: white;
+        font-weight: bold;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 6px;
+        transition: 0.3s;
+    }
+    .btn-apply-lg:hover {
+        background-color: #e66000;
+        color: white;
+    }
+</style>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h2 class="fw-bold mb-4">Ứng tuyển công việc</h2>
+
+            <!-- Job Info Summary -->
+            <div class="job-card shadow-sm d-flex align-items-center">
+                <img src="@Model.Job.CompanyLogo" class="border rounded p-1 me-3" style="width: 70px; height: 70px; object-fit: contain;">
+                <div>
+                    <h4 class="fw-bold mb-1">@Model.Job.Title</h4>
+                    <p class="text-primary fw-bold mb-0" style="color: #3b5a82 !important;">@Model.Job.CompanyName</p>
+                </div>
+            </div>
+
+            <!-- Apply Form -->
+            <div class="job-card shadow-sm">
+                <form asp-controller="Job" asp-action="ApplyPost" asp-route-id="@Model.Job.Id" method="post">
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Chọn CV của bạn</label>
+                        @if (Model.AvailableCVs.Any())
+                        {
+                            <select asp-for="SelectedCvId" class="form-select">
+                                <option value="">-- Không gửi kèm CV (Chỉ gửi Thư giới thiệu) --</option>
+                                @foreach (var cv in Model.AvailableCVs)
+                                {
+                                    <option value="@cv.Id">@cv.FileName @(cv.IsDefault ? "(Mặc định)" : "")</option>
+                                }
+                            </select>
+                            <small class="text-muted d-block mt-2">
+                                Bạn có thể tải lên CV mới trong <a href="/Profile">Trang cá nhân</a>.
+                            </small>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning p-2">
+                                Bạn chưa có CV nào trên hệ thống. 
+                                <a href="/Profile">Vào Trang cá nhân để tải lên</a> hoặc chỉ gửi Thư giới thiệu.
+                            </div>
+                        }
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Thư giới thiệu (Tùy chọn)</label>
+                        <textarea asp-for="CoverLetter" class="form-control" rows="5" placeholder="Viết lý do tại sao bạn phù hợp với công việc này..."></textarea>
+                        <small class="text-muted mt-1 d-block">Những kỹ năng, kinh nghiệm nổi bật nhất của bạn.</small>
+                    </div>
+
+                    <hr />
+
+                    <div class="text-end mt-4">
+                        <a href="/Job/Details/@Model.Job.Id" class="btn btn-outline-secondary me-2">Hủy</a>
+                        <button type="submit" class="btn-apply-lg">Gửi Ứng Tuyển</button>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</div>

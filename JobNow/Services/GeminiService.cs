@@ -142,7 +142,7 @@ namespace JobNow.Services
         {
             try
             {
-                var apiKey = _configuration["Gemini:ApiKey"]; // Đảm bảo cậu có cấu hình này
+                var apiKey = _apiKey; // Dùng _apiKey đã được resolve trong constructor từ IConfiguration
                 var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={apiKey}";
 
                 string base64Image = Convert.ToBase64String(imageBytes);
