@@ -1,4 +1,4 @@
-﻿using Postgrest.Attributes;
+using Postgrest.Attributes;
 using Postgrest.Models;
 using System;
 
@@ -32,5 +32,10 @@ namespace JobNow.Models
         [Column("company_size")] public string CompanySize { get; set; }
         [Column("company_website")] public string CompanyWebsite { get; set; }
         [Column("company_address")] public string CompanyAddress { get; set; }
+        
+        [Column("employer_id")] public int? EmployerId { get; set; }
+        [Column("status")] public string Status { get; set; }
+        [Column("created_at")] public DateTime CreatedAt { get; set; }
+        [Column("updated_at")] public DateTime UpdatedAt { get; set; }
     }
 }

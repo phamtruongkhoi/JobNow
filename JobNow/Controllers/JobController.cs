@@ -1,4 +1,4 @@
-﻿using JobNow.Models;
+using JobNow.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,7 +23,7 @@ namespace JobNow.Controllers
             int pageSize = 5; // Số công việc trên 1 trang
             try
             {
-                var response = await _supabase.From<Job>().Get();
+                var response = await _supabase.From<Job>().Where(x => x.Status == "Published").Get();
                 var jobs = response.Models;
 
                 // Lọc dữ liệu theo từ khóa
@@ -65,12 +65,19 @@ namespace JobNow.Controllers
         {
             try
             {
-                // Lấy công việc theo ID
-                var response = await _supabase.From<Job>().Where(x => x.Id == id).Single();
+                // Lấy công việc theo ID và phải là Published
+                var response = await _supabase.From<Job>()
+                    .Where(x => x.Id == id)
+                    .Where(x => x.Status == "Published")
+                    .Single();
                 if (response == null) return NotFound();
 
                 // Tiện tay lấy luôn 2 công việc ngẫu nhiên để làm phần "Việc làm liên quan" ở cuối trang
-                var relatedResponse = await _supabase.From<Job>().Where(x => x.Id != id).Limit(2).Get();
+                var relatedResponse = await _supabase.From<Job>()
+                    .Where(x => x.Id != id)
+                    .Where(x => x.Status == "Published")
+                    .Limit(2)
+                    .Get();
                 ViewBag.RelatedJobs = relatedResponse.Models;
 
                 return View(response);

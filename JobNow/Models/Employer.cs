@@ -1,4 +1,4 @@
-﻿using Postgrest.Attributes;
+using Postgrest.Attributes;
 using Postgrest.Models;
 //using Supabase.Postgrest.Attributes;
 //using Supabase.Postgrest.Models;
@@ -19,5 +19,23 @@ namespace JobNow.Models
 
         [Column("is_global")]
         public bool IsGlobal { get; set; } // true: Quốc tế, false: Việt Nam
+
+        [Column("website")]
+        public string Website { get; set; }
+
+        [Column("email")]
+        public string Email { get; set; }
+
+        [Column("phone")]
+        public string Phone { get; set; }
+
+        [Column("address")]
+        public string Address { get; set; }
+
+        [Column("description")]
+        public string Description { get; set; }
+
+        [Column("company_size")]
+        public string CompanySize { get; set; }
     }
 }

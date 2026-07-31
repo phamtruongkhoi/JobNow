@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -72,8 +72,16 @@
                         <li class="nav-item">
                             <a class="nav-link jn-nav-link" asp-controller="Notification" asp-action="Index">Thông Báo</a>
                         </li>
+                        <!-- MERGE DECISION: Both branches added a nav item to the same <li> slot.
+                             Upstream (Profile branch) added "Cá Nhân" -> ProfileController.
+                             Stash (Employer branch) added "Nhà Tuyển Dụng" -> EmployerController.
+                             These are two independent features with no logical conflict.
+                             Decision: Keep BOTH as separate <li> items. -->
                         <li class="nav-item">
                             <a class="nav-link jn-nav-link" asp-controller="Profile" asp-action="Index">Cá Nhân</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link jn-nav-link" asp-controller="Employer" asp-action="Index">Nhà Tuyển Dụng</a>
                         </li>
                     </ul>
 
@@ -96,7 +104,6 @@
                 </div>
             </div>
         </nav>
-
     </header>
 
     <!-- PHẦN NỘI DUNG CHÍNH -->
@@ -105,98 +112,72 @@
         @RenderBody()
     </main>
 
-    <!-- FOOTER MÀU ĐEN -->
-    <footer class="jn-header text-white pt-5 pb-3 mt-5">
-        <div class="container text-center">
-            <div class="row text-start mb-4">
-                <div class="col-md-4">
-                    <h5 class="fw-bold">CareerFlow</h5>
-                    <p class="text-muted small">Cầu nối vững chắc giữa nhân tài và doanh nghiệp hàng đầu Việt Nam. Nâng tầm sự nghiệp của bạn ngay hôm nay.</p>
+    <!-- FOOTER
+         MERGE DECISION: The original outer <footer> (old CareerFlow 3-column design, lines 117-149)
+         was a duplicate / legacy version nested inside itself — invalid HTML.
+         The inner <footer> (new JobNow 4-column design) is the newer, richer version.
+         Decision: Remove the outer wrapper, keep only the inner 4-column footer. -->
+    <footer class="jn-header pt-5 pb-3 mt-5 border-top border-secondary">
+        <div class="container">
+            <div class="row text-start mb-5">
+                <!-- Cột 1: Logo và mô tả -->
+                <div class="col-md-3 pe-4">
+                    <h4 class="text-white fw-bold mb-3">JobNow</h4>
+                    <p class="small text-secondary" style="line-height: 1.8;">Cầu nối vững chắc giữa nhân tài và doanh nghiệp hàng đầu Việt Nam. Nâng tầm sự nghiệp của bạn ngay hôm nay.</p>
+                    <div class="d-flex gap-3 mt-3 text-secondary">
+                        <i class="fs-5">👦</i>
+                        <i class="fs-5">🧑‍💻</i>
+                        <i class="fs-5">🌐</i>
+                    </div>
                 </div>
-                <div class="col-md-2 offset-md-2">
-                    <h6 class="fw-bold">Về CareerFlow</h6>
-                    <ul class="list-unstyled text-muted small">
-                        <li>Về chúng tôi</li>
-                        <li>Liên hệ</li>
-                        <li>Báo chí</li>
+
+                <!-- Cột 2: Về JobNow -->
+                <div class="col-md-3">
+                    <h6 class="fw-bold mb-4" style="color: #94a3b8;">Về JobNow</h6>
+                    <ul class="list-unstyled small" style="line-height: 2.2;">
+                        <li><a href="#" class="text-secondary text-decoration-none">Về chúng tôi</a></li>
+                        <li><a href="#" class="text-secondary text-decoration-none">Liên hệ</a></li>
+                        <li><a href="#" class="text-secondary text-decoration-none">Góc báo chí</a></li>
+                        <li><a href="#" class="text-secondary text-decoration-none">Cơ hội nghề nghiệp</a></li>
                     </ul>
                 </div>
-                <div class="col-md-2">
-                    <h6 class="fw-bold">Ứng viên</h6>
-                    <ul class="list-unstyled text-muted small">
-                        <li>Tìm việc làm</li>
-                        <li>Tạo CV</li>
+
+                <!-- Cột 3: Dành cho ứng viên -->
+                <div class="col-md-3">
+                    <h6 class="fw-bold mb-4" style="color: #94a3b8;">Dành cho ứng viên</h6>
+                    <ul class="list-unstyled small" style="line-height: 2.2;">
+                        <li><a href="#" class="text-secondary text-decoration-none">Tìm việc làm</a></li>
+                        <li><a href="#" class="text-secondary text-decoration-none">Tạo CV trực tuyến</a></li>
+                        <li><a href="#" class="text-secondary text-decoration-none">Cẩm nang nghề nghiệp</a></li>
+                        <li><a href="#" class="text-secondary text-decoration-none">Câu hỏi thường gặp</a></li>
                     </ul>
                 </div>
-                <div class="col-md-2">
-                    <h6 class="fw-bold">Nhà tuyển dụng</h6>
-                    <ul class="list-unstyled text-muted small">
-                        <li>Đăng tin</li>
-                        <li>Tìm hồ sơ</li>
+
+                <!-- Cột 4: Dành cho nhà tuyển dụng -->
+                <div class="col-md-3">
+                    <h6 class="fw-bold mb-4" style="color: #94a3b8;">Dành cho nhà tuyển dụng</h6>
+                    <ul class="list-unstyled small" style="line-height: 2.2;">
+                        <li><a href="#" class="text-secondary text-decoration-none">Đăng tin tuyển dụng</a></li>
+                        <li><a href="#" class="text-secondary text-decoration-none">Tìm kiếm hồ sơ</a></li>
+                        <li><a href="#" class="text-secondary text-decoration-none">Giải pháp HR</a></li>
+                        <li><a href="#" class="text-secondary text-decoration-none">Bảng giá dịch vụ</a></li>
                     </ul>
                 </div>
             </div>
-            <hr class="border-secondary" />
-            <p class="text-muted small mb-0">&copy; 2026 - JobNow Inc. All rights reserved.</p>
+
+            <hr class="border-secondary mb-4" style="opacity: 0.3;" />
+
+            <div class="d-flex justify-content-end align-items-center">
+                <p class="text-secondary small mb-0 me-4">&copy; 2026 Jobnow Inc. All rights reserved.</p>
+                <a href="#" class="text-secondary small text-decoration-none me-3">Terms of Service</a>
+                <a href="#" class="text-secondary small text-decoration-none">Privacy Policy</a>
+            </div>
         </div>
-        <!-- FOOTER MỚI -->
-        <footer class="jn-header pt-5 pb-3 mt-5 border-top border-secondary">
-            <div class="container">
-                <div class="row text-start mb-5">
-                    <!-- Cột 1: Logo và mô tả -->
-                    <div class="col-md-3 pe-4">
-                        <h4 class="text-white fw-bold mb-3">JobNow</h4>
-                        <p class="small text-secondary" style="line-height: 1.8;">Cầu nối vững chắc giữa nhân tài và doanh nghiệp hàng đầu Việt Nam. Nâng tầm sự nghiệp của bạn ngay hôm nay.</p>
-                        <div class="d-flex gap-3 mt-3 text-secondary">
-                            <i class="fs-5">👦</i> <!-- Có thể thay bằng icon Bootstrap thật -->
-                            <i class="fs-5">🧑‍💻</i>
-                            <i class="fs-5">🌐</i>
-                        </div>
-                    </div>
+    </footer>
 
-                    <!-- Cột 2: Về JobNow -->
-                    <div class="col-md-3">
-                        <h6 class="fw-bold mb-4" style="color: #94a3b8;">Về JobNow</h6>
-                        <ul class="list-unstyled small" style="line-height: 2.2;">
-                            <li><a href="#" class="text-secondary text-decoration-none">Về chúng tôi</a></li>
-                            <li><a href="#" class="text-secondary text-decoration-none">Liên hệ</a></li>
-                            <li><a href="#" class="text-secondary text-decoration-none">Góc báo chí</a></li>
-                            <li><a href="#" class="text-secondary text-decoration-none">Cơ hội nghề nghiệp</a></li>
-                        </ul>
-                    </div>
-
-                    <!-- Cột 3: Dành cho ứng viên -->
-                    <div class="col-md-3">
-                        <h6 class="fw-bold mb-4" style="color: #94a3b8;">Dành cho ứng viên</h6>
-                        <ul class="list-unstyled small" style="line-height: 2.2;">
-                            <li><a href="#" class="text-secondary text-decoration-none">Tìm việc làm</a></li>
-                            <li><a href="#" class="text-secondary text-decoration-none">Tạo CV trực tuyến</a></li>
-                            <li><a href="#" class="text-secondary text-decoration-none">Cẩm nang nghề nghiệp</a></li>
-                            <li><a href="#" class="text-secondary text-decoration-none">Câu hỏi thường gặp</a></li>
-                        </ul>
-                    </div>
-
-                    <!-- Cột 4: Dành cho nhà tuyển dụng -->
-                    <div class="col-md-3">
-                        <h6 class="fw-bold mb-4" style="color: #94a3b8;">Dành cho nhà tuyển dụng</h6>
-                        <ul class="list-unstyled small" style="line-height: 2.2;">
-                            <li><a href="#" class="text-secondary text-decoration-none">Đăng tin tuyển dụng</a></li>
-                            <li><a href="#" class="text-secondary text-decoration-none">Tìm kiếm hồ sơ</a></li>
-                            <li><a href="#" class="text-secondary text-decoration-none">Giải pháp HR</a></li>
-                            <li><a href="#" class="text-secondary text-decoration-none">Bảng giá dịch vụ</a></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <hr class="border-secondary mb-4" style="opacity: 0.3;" />
-
-                <div class="d-flex justify-content-end align-items-center">
-                    <p class="text-secondary small mb-0 me-4">&copy; 2024 Jobnow Inc. All rights reserved.</p>
-                    <a href="#" class="text-secondary small text-decoration-none me-3">Terms of Service</a>
-                    <a href="#" class="text-secondary small text-decoration-none">Privacy Policy</a>
-                </div>
-            </div>
-        </footer>
+    <!-- MERGE DECISION: Upstream had the full script block: jQuery + Bootstrap + site.js + Scripts section.
+         Stash only had Bootstrap + Scripts section — a partial edit that accidentally dropped jQuery and site.js.
+         Decision: Keep upstream's complete, correct script block. -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
