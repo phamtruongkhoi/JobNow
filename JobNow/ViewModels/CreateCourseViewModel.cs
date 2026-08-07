@@ -13,7 +13,7 @@ namespace JobNow.ViewModels
         [Required(ErrorMessage = "Tên trung tâm/trường không được để trống")]
         public string ProviderName { get; set; }
 
-        public string ProviderLogo { get; set; }
+        public string? ProviderLogo { get; set; }
 
         [Required(ErrorMessage = "Học phí không được để trống")]
         public string Price { get; set; }
@@ -21,14 +21,17 @@ namespace JobNow.ViewModels
         [Required(ErrorMessage = "Địa điểm không được để trống")]
         public string Location { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng chọn hạn đăng ký")]
         public DateTime Deadline { get; set; }
 
-        public string Tags { get; set; }
+        public string? Tags { get; set; }
 
         [Required(ErrorMessage = "Thời lượng không được để trống")]
         public string Duration { get; set; }
 
         [Required(ErrorMessage = "Hình thức không được để trống")]
         public string Format { get; set; }
+
+        public string? RegisterUrl { get; set; }
     }
 }

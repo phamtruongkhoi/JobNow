@@ -1,0 +1,138 @@
+@model IEnumerable<JobNow.Models.Application>
+@{
+    ViewData["Title"] = "Hồ sơ ứng tuyển";
+}
+
+<style>
+    .jn-workspace-container {
+        background-color: #F8FAFC;
+        min-height: calc(100vh - 76px);
+        padding: 30px;
+    }
+    .jn-panel {
+        background: #FFFFFF;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        padding: 24px;
+    }
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .status-applied { background-color: #FEF3C7; color: #D97706; }
+    .status-reviewing { background-color: #DBEAFE; color: #2563EB; }
+    .status-interview { background-color: #f3e8ff; color: #9333ea; }
+    .status-accepted { background-color: #D1FAE5; color: #059669; }
+    .status-rejected { background-color: #FEE2E2; color: #DC2626; }
+    
+    .company-logo-img {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #E5E7EB;
+    }
+    .logo-placeholder {
+        width: 48px;
+        height: 48px;
+        background-color: #F3F4F6;
+        color: #9CA3AF;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="jn-workspace-container shadow-sm border rounded">
+        <h4 class="fw-bold mb-4">Hồ sơ ứng tuyển của bạn</h4>
+
+            <div class="jn-panel">
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-file-earmark-person fs-1"></i>
+                        <h5 class="mt-3">Bạn chưa ứng tuyển công việc nào.</h5>
+                        <a asp-controller="Job" asp-action="Index" class="btn btn-primary mt-3">Tìm việc ngay</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Công việc</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày nộp</th>
+                                    <th>Cập nhật lúc</th>
+                                    <th class="text-end">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var app in Model)
+                                {
+                                    var statusClass = app.Status switch {
+                                        "Applied" => "status-applied",
+                                        "Reviewing" => "status-reviewing",
+                                        "Interview" => "status-interview",
+                                        "Accepted" => "status-accepted",
+                                        "Rejected" => "status-rejected",
+                                        _ => "status-applied"
+                                    };
+
+                                    var companyName = app.Job?.Employer?.Name ?? app.Job?.CompanyName ?? "Công ty Ẩn danh";
+                                    var logoUrl = app.Job?.Employer?.LogoUrl;
+
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                @if (!string.IsNullOrEmpty(logoUrl))
+                                                {
+                                                    <img src="@logoUrl" class="company-logo-img me-3" alt="Logo" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="logo-placeholder me-3">
+                                                        <i class="bi bi-building"></i>
+                                                    </div>
+                                                }
+                                                <div>
+                                                    <div class="fw-bold text-dark">@(app.Job?.Title ?? "Việc làm không tồn tại")</div>
+                                                    <div class="text-muted small">@companyName</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge @statusClass">@app.Status</span>
+                                        </td>
+                                        <td>
+                                            @app.AppliedAt.ToString("dd/MM/yyyy HH:mm")
+                                        </td>
+                                        <td>
+                                            @app.UpdatedAt.ToString("dd/MM/yyyy HH:mm")
+                                        </td>
+                                        <td class="text-end">
+                                            @if (app.JobId > 0)
+                                            {
+                                                <a href="/Job/Detail/@app.JobId" class="btn btn-sm btn-outline-primary" target="_blank">Xem tin tuyển dụng</a>
+                                                <form asp-controller="Chat" asp-action="StartConversation" method="post" class="d-inline mt-2">
+                                                    <input type="hidden" name="jobId" value="@app.JobId" />
+                                                    <input type="hidden" name="candidateProfileId" value="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-info d-block mx-auto mt-2" style="font-size: 0.8rem;"><i class="bi bi-chat-dots"></i> Chat với nhà tuyển dụng</button>
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+    </div>
+</div>

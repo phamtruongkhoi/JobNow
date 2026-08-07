@@ -82,5 +82,10 @@
                 <i class="bi bi-book"></i> Quản lý Khóa Học
             </a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentAction == "TokenTransactions" ? "active" : "")" asp-controller="Admin" asp-action="TokenTransactions">
+                <i class="bi bi-coin"></i> Giao dịch Token
+            </a>
+        </li>
     </ul>
 </nav>

@@ -41,6 +41,15 @@ namespace JobNow.Models
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
 
+        [Column("expired_at")]
+        public DateTime? ExpiredAt { get; set; }
+
+        [Column("duration_days")]
+        public int DurationDays { get; set; }
+
+        [Column("badge_type")]
+        public string BadgeType { get; set; }
+
         // 2. HÀM TÍNH TOÁN THỜI GIAN ĐỘNG
         public string GetTimeAgo()
         {

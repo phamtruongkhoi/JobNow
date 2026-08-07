@@ -1,0 +1,201 @@
+@model IEnumerable<JobNow.Models.Job>
+
+@{
+    ViewData["Title"] = "Công việc đã lưu";
+}
+
+<style>
+    body {
+        background-color: #F8FAFC;
+    }
+
+    .job-card {
+        background-color: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .job-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .badge-tag {
+        background-color: #f1f5f9;
+        color: #475569;
+        font-weight: 500;
+        border: 1px solid #e2e8f0;
+    }
+
+    .btn-apply {
+        background-color: #ea580c;
+        color: white;
+        font-weight: 600;
+        border: none;
+        transition: background-color 0.2s;
+    }
+
+    .btn-apply:hover {
+        background-color: #c2410c;
+        color: white;
+    }
+    
+    .btn-remove {
+        background-color: #fef2f2;
+        color: #dc2626;
+        font-weight: 600;
+        border: 1px solid #fecaca;
+        transition: all 0.2s;
+    }
+    
+    .btn-remove:hover {
+        background-color: #fee2e2;
+        color: #b91c1c;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold">Công việc đã lưu</h2>
+            <p class="text-muted">Xem lại và quản lý các công việc bạn đã lưu.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-9 mx-auto">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5 bg-white rounded shadow-sm border">
+                    <i class="bi bi-bookmark-x text-muted" style="font-size: 4rem; opacity: 0.5;"></i>
+                    <h5 class="mt-4 fw-bold text-dark">Bạn chưa lưu công việc nào.</h5>
+                    <p class="text-muted mb-4">Hãy khám phá các cơ hội việc làm và lưu lại những công việc bạn quan tâm.</p>
+                    <a asp-controller="Job" asp-action="Index" class="btn btn-apply px-4 py-2 rounded-pill">Khám phá việc làm</a>
+                </div>
+            }
+            else
+            {
+                @foreach (var job in Model)
+                {
+                    var logoUrl = !string.IsNullOrEmpty(job.CompanyLogo)
+                        ? job.CompanyLogo
+                        : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(job.CompanyName ?? "Company")}&background=f1f5f9&color=ea580c";
+
+                    <div class="job-card p-4 mb-3" id="saved-job-@job.Id">
+                        <div class="d-flex justify-content-between mb-3">
+                            <div class="d-flex">
+                                <img src="@logoUrl" alt="Logo" class="rounded border me-3" style="width: 56px; height: 56px; object-fit: contain; padding: 4px;">
+                                <div>
+                                    <h5 class="fw-bold mb-1 d-flex align-items-center">
+                                        @job.Title
+                                    </h5>
+                                    @if(job.BadgeType == "verified") { <div class="badge bg-primary mt-1 mb-1"><i class="bi bi-star-fill"></i> Công ty uy tín</div> }
+                                    else if(job.BadgeType == "top") { <div class="badge bg-warning text-dark mt-1 mb-1"><i class="bi bi-trophy-fill"></i> Top Employer</div> }
+                                    else if(job.BadgeType == "urgent") { <div class="badge bg-danger mt-1 mb-1"><i class="bi bi-fire"></i> Tuyển gấp</div> }
+                                    <p class="text-orange fw-bold small mb-0">@job.CompanyName</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        @{
+                            int remainingDays = job.ExpiredAt.HasValue ? (int)Math.Ceiling((job.ExpiredAt.Value - DateTime.UtcNow).TotalDays) : 0;
+                            if (remainingDays < 0) remainingDays = 0;
+                        }
+
+                        <div class="row text-muted small mb-3 g-2">
+                            <div class="col-md-3 text-success fw-bold"><i class="bi bi-cash-stack me-1"></i> @(job.Salary ?? "Thỏa thuận")</div>
+                            <div class="col-md-3"><i class="bi bi-geo-alt me-1"></i> @job.Location</div>
+                            <div class="col-md-3"><i class="bi bi-clock me-1"></i> @job.GetTimeAgo()</div>
+                            <div class="col-md-3 text-danger"><i class="bi bi-hourglass-split me-1"></i> Còn @remainingDays ngày</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                            <div>
+                                <a asp-controller="Job" asp-action="Details" asp-route-id="@job.Id" class="btn btn-apply px-4 py-2 text-decoration-none rounded-pill me-2">
+                                    Xem chi tiết
+                                </a>
+                            </div>
+                            <button class="btn btn-remove px-3 py-2 rounded-pill" onclick="removeSavedJob(@job.Id)">
+                                <i class="bi bi-trash"></i> Bỏ lưu
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function removeSavedJob(jobId) {
+            fetch(`/Job/ToggleSaveJob?jobId=${jobId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && !data.isSaved) {
+                    const card = document.getElementById(`saved-job-${jobId}`);
+                    if (card) {
+                        card.style.transition = 'opacity 0.3s, transform 0.3s';
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            card.remove();
+                            // If no jobs left, refresh the page to show empty state
+                            if (document.querySelectorAll('.job-card').length === 0) {
+                                window.location.reload();
+                            }
+                        }, 300);
+                    }
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Có lỗi xảy ra khi xóa công việc đã lưu.', 'danger');
+            });
+        }
+        
+        function showToast(message, type) {
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+            
+            const toastId = 'toast-' + Date.now();
+            const bgClass = type === 'success' ? 'bg-success text-white' : 'bg-danger text-white';
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                  <div class="d-flex">
+                    <div class="toast-body fw-bold">
+                      ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', function () {
+                toastElement.remove();
+            });
+        }
+    </script>
+}

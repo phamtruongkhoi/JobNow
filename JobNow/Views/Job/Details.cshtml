@@ -212,7 +212,14 @@
                     <a href="/Job/Apply/@Model.Id" class="btn-apply-lg mb-3 d-block text-decoration-none">Ứng tuyển ngay</a>
                 }
                 <div class="d-flex gap-2 mb-3">
-                    <button class="btn-outline"><i class="bi bi-bookmark"></i> Lưu</button>
+                    @{
+                        bool isSaved = ViewBag.IsSaved != null && (bool)ViewBag.IsSaved;
+                        string saveBtnIcon = isSaved ? "bi-heart-fill text-danger" : "bi-heart";
+                        string saveBtnText = isSaved ? "Đã Lưu" : "Lưu";
+                    }
+                    <button class="btn-outline" id="btn-save-job" onclick="toggleSaveJob(@Model.Id, this)">
+                        <i class="bi @saveBtnIcon" style="transition: color 0.2s;"></i> <span>@saveBtnText</span>
+                    </button>
                     <button class="btn-outline"><i class="bi bi-share"></i> Chia sẻ</button>
                 </div>
                 <a href="#" class="text-danger small text-decoration-none">⚠️ Báo cáo công việc này</a>
@@ -277,3 +284,76 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function toggleSaveJob(jobId, element) {
+            const icon = element.querySelector('i');
+            const span = element.querySelector('span');
+            
+            fetch(`/Job/ToggleSaveJob?jobId=${jobId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.isSaved) {
+                        icon.classList.remove('bi-heart');
+                        icon.classList.add('bi-heart-fill', 'text-danger');
+                        span.innerText = "Đã Lưu";
+                    } else {
+                        icon.classList.remove('bi-heart-fill', 'text-danger');
+                        icon.classList.add('bi-heart');
+                        span.innerText = "Lưu";
+                    }
+                    
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Có lỗi xảy ra khi lưu công việc.', 'danger');
+            });
+        }
+        
+        function showToast(message, type) {
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+            
+            const toastId = 'toast-' + Date.now();
+            const bgClass = type === 'success' ? 'bg-success text-white' : 'bg-danger text-white';
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                  <div class="d-flex">
+                    <div class="toast-body fw-bold">
+                      ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', function () {
+                toastElement.remove();
+            });
+        }
+    </script>
+}

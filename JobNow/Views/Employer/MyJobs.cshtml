@@ -83,9 +83,9 @@
         font-weight: 600;
     }
 
-    .badge-active { background-color: #dcfce7; color: #16A34A; }
-    .badge-draft { background-color: #F3F4F6; color: #6B7280; }
-    .badge-expired { background-color: #fee2e2; color: #DC2626; }
+    .badge-success { background-color: #dcfce7; color: #16A34A; }
+    .badge-warning { background-color: #fef08a; color: #b45309; }
+    .badge-danger { background-color: #fee2e2; color: #DC2626; }
 
     .btn-primary-custom {
         background-color: #F97316;
@@ -186,10 +186,8 @@
                             <tbody>
                                 @foreach (var job in Model)
                                 {
-                                    var isDraft = job.Status == "Draft";
-                                    var isExpired = !isDraft && job.Deadline < DateTime.Now;
-                                    var statusClass = isDraft ? "badge-draft" : (isExpired ? "badge-expired" : "badge-active");
-                                    var statusText = isDraft ? "Bản nháp" : (isExpired ? "Đã hết hạn" : "Đang tuyển");
+                                    var statusClass = job.Status == "Published" ? "badge-success" : (job.Status == "Rejected" ? "badge-danger" : "badge-warning");
+                                    var statusText = job.Status == "Published" ? "Đã duyệt" : (job.Status == "Rejected" ? "Từ chối" : "Đang chờ");
 
                                     <tr>
                                         <td>
@@ -200,7 +198,17 @@
                                         <td>@job.Location</td>
                                         <td>@job.PostedAt</td>
                                         <td>@job.Deadline.ToString("dd/MM/yyyy")</td>
-                                        <td><span class="badge-status @statusClass">@statusText</span></td>
+                                        <td>
+                                            <div class="mb-1"><span class="badge-status @statusClass">@statusText</span></div>
+                                            
+                                            @if(job.BadgeType == "verified") { <div class="text-primary small fw-bold"><i class="bi bi-star-fill"></i> Công ty uy tín</div> }
+                                            else if(job.BadgeType == "top") { <div class="text-warning small fw-bold"><i class="bi bi-trophy-fill"></i> Top Employer</div> }
+                                            else if(job.BadgeType == "urgent") { <div class="text-danger small fw-bold"><i class="bi bi-fire"></i> Tuyển gấp</div> }
+                                            
+                                            @if(job.ExpiredAt.HasValue) {
+                                                <div class="text-muted small mt-1">Hết hạn: @job.ExpiredAt.Value.ToString("dd/MM/yyyy")</div>
+                                            }
+                                        </td>
                                         <td class="text-center"><strong>@job.AppliedCount</strong></td>
                                         <td class="text-end">
                                             <a asp-controller="Job" asp-action="Details" asp-route-id="@job.Id" class="btn-icon" title="Xem">

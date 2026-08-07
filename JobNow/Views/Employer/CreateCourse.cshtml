@@ -20,7 +20,7 @@
                 <h4 class="fw-bold mb-4">Thêm Khóa Học Mới</h4>
                 
                 <form asp-action="CreateCourse" method="post">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div asp-validation-summary="All" class="text-danger fw-bold mb-3 border p-3 rounded" style="background-color: #fef2f2; border-color: #fca5a5 !important; display: @(ViewData.ModelState.IsValid ? "none" : "block")"></div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -64,6 +64,13 @@
                                 <option value="Hybrid">Hybrid</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="RegisterUrl" class="form-label">Link đăng ký (Tùy chọn)</label>
+                        <input asp-for="RegisterUrl" class="form-control" placeholder="VD: https://example.com/course" />
+                        <div class="form-text">Nhập đường dẫn trang web nơi ứng viên sẽ đăng ký khóa học này (VD: https://docs.google.com/... hoặc trang chủ trung tâm). Bỏ trống nếu không có.</div>
+                        <span asp-validation-for="RegisterUrl" class="text-danger"></span>
                     </div>
 
                     <div class="mb-4">

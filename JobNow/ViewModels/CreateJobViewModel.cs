@@ -58,5 +58,11 @@ namespace JobNow.ViewModels
         public string Benefits { get; set; }
 
         public string Status { get; set; } // Draft or Published
+
+        [Display(Name = "Thời gian hiển thị")]
+        public int DurationDays { get; set; } = 3;
+
+        [Display(Name = "Nhãn nổi bật")]
+        public string BadgeType { get; set; } = "none";
     }
 }

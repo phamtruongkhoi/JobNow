@@ -20,6 +20,8 @@ namespace JobNow.Models
         [Column("is_new")] public bool IsNew { get; set; }
         [Column("duration")] public string Duration { get; set; }
         [Column("format")] public string Format { get; set; }
+        [Column("register_url")] public string RegisterUrl { get; set; }
+        [Column("click_count")] public int ClickCount { get; set; }
 
         [Column("employer_id")] public int? EmployerId { get; set; }
         [Reference(typeof(Employer), ReferenceAttribute.JoinType.Left)] public Employer Employer { get; set; }

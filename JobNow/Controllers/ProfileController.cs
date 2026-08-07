@@ -125,7 +125,7 @@ namespace JobNow.Controllers
                         // Truy vấn thông tin Job (JOIN trong bộ nhớ đảm bảo 100% chính xác, tránh N+1 query)
                         var jobIds = savedJobs.Select(s => s.JobId).Distinct().ToList();
                         var jobsRes = await _supabase.From<Job>()
-                            .Where(j => jobIds.Contains(j.Id))
+                            .Filter("id", Postgrest.Constants.Operator.In, jobIds)
                             .Get();
 
                         var jobsMap = new Dictionary<int, Job>();
@@ -167,7 +167,7 @@ namespace JobNow.Controllers
                         // Truy vấn thông tin Job
                         var appJobIds = applications.Select(a => a.JobId).Distinct().ToList();
                         var appJobsRes = await _supabase.From<Job>()
-                            .Where(j => appJobIds.Contains(j.Id))
+                            .Filter("id", Postgrest.Constants.Operator.In, appJobIds)
                             .Get();
 
                         var appJobsMap = new Dictionary<int, Job>();
@@ -188,8 +188,9 @@ namespace JobNow.Controllers
                         }
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Console.WriteLine("ERROR IN PROFILE APPLICATIONS: " + ex.ToString());
                     applications = new List<Application>();
                 }
 
@@ -210,6 +211,58 @@ namespace JobNow.Controllers
                 ViewBag.Error = $"Lỗi tải trang cá nhân: {ex.Message}";
                 return View(new ProfileViewModel());
             }
+        }
+
+        // =========================================================================
+        // 1.5. ACTION DANH SÁCH HỒ SƠ ỨNG TUYỂN
+        // =========================================================================
+        [HttpGet]
+        public async Task<IActionResult> MyApplications()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return RedirectToAction("Login", "Auth");
+
+            var applications = new List<Application>();
+            try
+            {
+                var appsResponse = await _supabase.From<Application>()
+                    .Where(a => a.ProfileId == userId)
+                    .Order("applied_at", Postgrest.Constants.Ordering.Descending)
+                    .Get();
+
+                if (appsResponse.Models != null && appsResponse.Models.Any())
+                {
+                    applications = appsResponse.Models;
+                    
+                    // Lấy Job và Employer để hiển thị
+                    var jobIds = applications.Select(a => a.JobId).Distinct().ToList();
+                    var jobsRes = await _supabase.From<Job>().Filter("id", Postgrest.Constants.Operator.In, jobIds).Get();
+                    
+                    if (jobsRes.Models != null)
+                    {
+                        var jobsDict = jobsRes.Models.ToDictionary(j => j.Id);
+                        var employerIds = jobsRes.Models.Where(j => j.EmployerId.HasValue).Select(j => j.EmployerId.Value).Distinct().ToList();
+                        
+                        var empRes = await _supabase.From<Employer>().Filter("id", Postgrest.Constants.Operator.In, employerIds).Get();
+                        var empDict = empRes.Models?.ToDictionary(e => e.Id) ?? new Dictionary<int, Employer>();
+
+                        foreach (var app in applications)
+                        {
+                            if (jobsDict.TryGetValue(app.JobId, out var job))
+                            {
+                                if (job.EmployerId.HasValue && empDict.TryGetValue(job.EmployerId.Value, out var emp)) job.Employer = emp;
+                                app.Job = job;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = ex.Message;
+            }
+
+            return View(applications);
         }
 
         // =========================================================================

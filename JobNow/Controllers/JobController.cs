@@ -35,7 +35,7 @@ namespace JobNow.Controllers
             try
             {
                 var response = await _supabase.From<Job>().Where(x => x.Status == "Published").Get();
-                var jobs = response.Models;
+                var jobs = response.Models.Where(j => !j.ExpiredAt.HasValue || j.ExpiredAt.Value > DateTime.UtcNow).ToList();
 
                 // --- GỢI Ý ĐỊA ĐIỂM ---
                 // Lấy danh sách các thành phố độc nhất từ database đẩy ra View
@@ -112,6 +112,20 @@ namespace JobNow.Controllers
                 ViewBag.MaxSalary = maxSalary;
                 ViewBag.SortOrder = sortOrder; // Lưu trạng thái Sort
 
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    try
+                    {
+                        var savedJobsRes = await _supabase.From<SavedJob>().Where(x => x.ProfileId == userId).Get();
+                        if (savedJobsRes.Models != null)
+                        {
+                            ViewBag.SavedJobIds = savedJobsRes.Models.Select(s => s.JobId).ToList();
+                        }
+                    }
+                    catch { }
+                }
+
                 ViewBag.TotalJobs = jobs.Count;
                 ViewBag.TotalPages = (int)Math.Ceiling(jobs.Count / (double)pageSize);
                 ViewBag.CurrentPage = page;
@@ -149,10 +163,21 @@ namespace JobNow.Controllers
                         ViewBag.HasApplied = appResponse.Models != null && appResponse.Models.Any();
                     } 
                     catch { ViewBag.HasApplied = false; }
+
+                    try 
+                    {
+                        var savedResponse = await _supabase.From<SavedJob>()
+                            .Filter("job_id", Postgrest.Constants.Operator.Equals, id)
+                            .Filter("profile_id", Postgrest.Constants.Operator.Equals, userId)
+                            .Get();
+                        ViewBag.IsSaved = savedResponse.Models != null && savedResponse.Models.Any();
+                    } 
+                    catch { ViewBag.IsSaved = false; }
                 }
                 else 
                 {
                     ViewBag.HasApplied = false;
+                    ViewBag.IsSaved = false;
                 }
 
                 return View(response);
@@ -218,12 +243,20 @@ namespace JobNow.Controllers
                     ProfileId = userId,
                     CvId = cvId,
                     CoverLetter = coverLetter,
-                    Status = "Pending",
+                    Status = "Applied",
                     AppliedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
 
                 await _supabase.From<Application>().Insert(application);
+
+                var job = await _supabase.From<Job>().Where(j => j.Id == id).Single();
+                if (job != null)
+                {
+                    job.AppliedCount += 1;
+                    await _supabase.From<Job>().Update(job);
+                }
+
                 TempData["Success"] = "Ứng tuyển thành công!";
                 return RedirectToAction("Details", "Job", new { id = id });
             }
@@ -231,6 +264,81 @@ namespace JobNow.Controllers
             {
                 TempData["Error"] = "Bạn đã ứng tuyển công việc này rồi.";
                 return RedirectToAction("Details", "Job", new { id = id });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleSaveJob(int jobId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập để lưu công việc." });
+            }
+
+            try
+            {
+                var existingResponse = await _supabase.From<SavedJob>()
+                    .Select("id")
+                    .Filter("profile_id", Postgrest.Constants.Operator.Equals, userId)
+                    .Filter("job_id", Postgrest.Constants.Operator.Equals, jobId)
+                    .Get();
+
+                if (existingResponse.Models != null && existingResponse.Models.Any())
+                {
+                    var savedJob = existingResponse.Models.First();
+                    await _supabase.From<SavedJob>().Where(x => x.Id == savedJob.Id).Delete();
+                    return Json(new { success = true, isSaved = false, message = "Đã bỏ lưu công việc." });
+                }
+                else
+                {
+                    var newSavedJob = new SavedJob
+                    {
+                        ProfileId = userId,
+                        JobId = jobId,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _supabase.From<SavedJob>().Insert(newSavedJob);
+                    return Json(new { success = true, isSaved = true, message = "Đã lưu công việc." });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Đã xảy ra lỗi: " + ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SavedJobs()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return RedirectToAction("Login", "Auth");
+
+            try
+            {
+                var response = await _supabase.From<SavedJob>()
+                    .Where(x => x.ProfileId == userId)
+                    .Get();
+                
+                var savedJobs = response.Models ?? new List<SavedJob>();
+                
+                // Fetch the actual jobs since inner join might not map Job automatically depending on config
+                // We'll just fetch all jobs that are in the saved list
+                var jobIds = savedJobs.Select(s => s.JobId).ToList();
+                var jobsList = new List<Job>();
+
+                if (jobIds.Any())
+                {
+                    var jobsResponse = await _supabase.From<Job>().Get();
+                    jobsList = jobsResponse.Models.Where(j => jobIds.Contains(j.Id)).ToList();
+                }
+
+                return View(jobsList);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Lỗi tải danh sách công việc đã lưu: " + ex.Message;
+                return View(new List<Job>());
             }
         }
     }

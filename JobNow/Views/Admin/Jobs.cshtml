@@ -30,6 +30,7 @@
                             <th>Tiêu đề</th>
                             <th>Công ty</th>
                             <th>Lương</th>
+                            <th>Ngày tạo</th>
                             <th>Trạng thái</th>
                             <th class="text-end">Hành động</th>
                         </tr>
@@ -41,12 +42,39 @@
                                 <td><div class="fw-bold">@job.Title</div><small class="text-muted">@job.Location</small></td>
                                 <td>@job.CompanyName</td>
                                 <td>@job.Salary</td>
-                                <td><span class="badge bg-secondary">@job.Status</span></td>
+                                <td>@(job.CreatedAt != DateTime.MinValue ? job.CreatedAt.ToString("dd/MM/yyyy") : job.PostedAt)</td>
+                                <td>
+                                    @if (job.Status == "Published")
+                                    {
+                                        <span class="badge bg-success">Đã duyệt</span>
+                                    }
+                                    else if (job.Status == "Rejected")
+                                    {
+                                        <span class="badge bg-danger">Từ chối</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">Đang chờ</span>
+                                    }
+                                </td>
                                 <td class="text-end">
-                                    <form asp-action="DeleteJob" asp-route-id="@job.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tin này?');">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Xóa</button>
-                                    </form>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        @if (job.Status != "Published" && job.Status != "Rejected")
+                                        {
+                                            <form asp-action="ApproveJob" asp-route-id="@job.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-success" title="Phê duyệt"><i class="bi bi-check-circle"></i> Duyệt</button>
+                                            </form>
+                                            <form asp-action="RejectJob" asp-route-id="@job.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Từ chối"><i class="bi bi-x-circle"></i> Từ chối</button>
+                                            </form>
+                                        }
+                                        <form asp-action="DeleteJob" asp-route-id="@job.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tin này?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Xóa"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         }

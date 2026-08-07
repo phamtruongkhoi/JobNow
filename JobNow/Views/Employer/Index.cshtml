@@ -1,3 +1,5 @@
+@model JobNow.ViewModels.EmployerDashboardViewModel
+
 @{
     ViewData["Title"] = "Employer Workspace";
 }
@@ -279,7 +281,7 @@
                             <i class="bi bi-file-text"></i>
                         </div>
                         <div class="jn-summary-details">
-                            <h3>@ViewBag.TotalJobs</h3>
+                            <h3>@Model.TotalJobs</h3>
                             <span>Tổng tin đăng</span>
                         </div>
                     </div>
@@ -290,7 +292,7 @@
                             <i class="bi bi-check-circle"></i>
                         </div>
                         <div class="jn-summary-details">
-                            <h3>@ViewBag.ActiveJobs</h3>
+                            <h3>@Model.ActiveJobs</h3>
                             <span>Đang tuyển</span>
                         </div>
                     </div>
@@ -301,7 +303,7 @@
                             <i class="bi bi-exclamation-circle"></i>
                         </div>
                         <div class="jn-summary-details">
-                            <h3>@ViewBag.ExpiredJobs</h3>
+                            <h3>@Model.ExpiredJobs</h3>
                             <span>Đã hết hạn</span>
                         </div>
                     </div>
@@ -312,8 +314,87 @@
                             <i class="bi bi-people"></i>
                         </div>
                         <div class="jn-summary-details">
-                            <h3>@ViewBag.TotalApplicants</h3>
+                            <h3>@Model.TotalApplicants</h3>
                             <span>Hồ sơ mới</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Token Summary Section -->
+            <div class="row g-4 jn-summary-row mb-5">
+                <div class="col-md-4">
+                    <div class="jn-summary-card" style="border-left: 4px solid #F97316;">
+                        <div class="jn-summary-icon" style="background-color: #fff7ed; color: #F97316;">
+                            <i class="bi bi-coin"></i>
+                        </div>
+                        <div class="jn-summary-details">
+                            <h3>@Model.TokenBalance</h3>
+                            <span>Số dư Token</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="jn-summary-card" style="border-left: 4px solid #16A34A;">
+                        <div class="jn-summary-icon" style="background-color: #f0fdf4; color: #16A34A;">
+                            <i class="bi bi-gift"></i>
+                        </div>
+                        <div class="jn-summary-details">
+                            <h3>+@Model.DailyFreeToken</h3>
+                            <span>Token Miễn phí / ngày</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="jn-summary-card" style="border-left: 4px solid #3b82f6;">
+                        <div class="jn-summary-icon" style="background-color: #eff6ff; color: #3b82f6;">
+                            <i class="bi bi-tags"></i>
+                        </div>
+                        <div class="jn-summary-details">
+                            <h3>-@Model.PostJobCost</h3>
+                            <span>Chi phí 1 lần đăng tin</span>
+                        </div>
+                    </div>
+                </div>
+            <!-- Application Summary Section -->
+            <div class="row g-4 jn-summary-row mb-5">
+                <div class="col-md-2">
+                    <div class="jn-summary-card" style="border-left: 4px solid #EAB308;">
+                        <div class="jn-summary-details">
+                            <h3 class="mb-1 text-warning">@Model.ApplicationsReceived</h3>
+                            <span style="font-size:0.75rem;">Đã nhận (Applied)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="jn-summary-card" style="border-left: 4px solid #3B82F6;">
+                        <div class="jn-summary-details">
+                            <h3 class="mb-1 text-primary">@Model.ApplicationsReviewing</h3>
+                            <span style="font-size:0.75rem;">Đang xem xét</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="jn-summary-card" style="border-left: 4px solid #9333EA;">
+                        <div class="jn-summary-details">
+                            <h3 class="mb-1 text-purple" style="color:#9333EA;">@Model.ApplicationsInterview</h3>
+                            <span style="font-size:0.75rem;">Phỏng vấn</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="jn-summary-card" style="border-left: 4px solid #16A34A;">
+                        <div class="jn-summary-details">
+                            <h3 class="mb-1 text-success">@Model.ApplicationsAccepted</h3>
+                            <span style="font-size:0.75rem;">Được nhận</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="jn-summary-card" style="border-left: 4px solid #DC2626;">
+                        <div class="jn-summary-details">
+                            <h3 class="mb-1 text-danger">@Model.ApplicationsRejected</h3>
+                            <span style="font-size:0.75rem;">Từ chối</span>
                         </div>
                     </div>
                 </div>

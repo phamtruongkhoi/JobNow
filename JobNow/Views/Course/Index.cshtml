@@ -1,4 +1,4 @@
-﻿@model IEnumerable<JobNow.Models.Course>
+@model IEnumerable<JobNow.Models.Course>
 
 @{
     ViewData["Title"] = "Khóa Học";
@@ -77,11 +77,11 @@
             <h2 class="fw-bold mb-4" style="color: #1e293b;">Tìm kiếm khóa học để nâng cao năng lực chuyên môn của bạn</h2>
             <div class="bg-white p-2 rounded shadow-sm d-flex align-items-center">
                 <div class="input-group border-end px-2" style="flex: 1;">
-                    <span class="input-group-text bg-transparent border-0"><i class="text-muted">🎓</i></span>
+                    <span class="input-group-text bg-transparent border-0"><i class="bi bi-book text-muted"></i></span>
                     <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control border-0 shadow-none" placeholder="Nhập tên khóa học, kỹ năng...">
                 </div>
                 <div class="input-group px-2" style="flex: 1;">
-                    <span class="input-group-text bg-transparent border-0"><i class="text-muted">📍</i></span>
+                    <span class="input-group-text bg-transparent border-0"><i class="bi bi-geo-alt text-muted"></i></span>
                     <input type="text" name="location" value="@ViewBag.Location" class="form-control border-0 shadow-none" placeholder="Thành phố hoặc Online...">
                 </div>
                 <button type="submit" class="btn btn-apply px-4 py-2 rounded">🔍 Tìm Kiếm</button>
@@ -171,14 +171,22 @@
                                     <p class="text-orange fw-bold small mb-0">@course.ProviderName</p>
                                 </div>
                             </div>
-                            <a href="#" class="text-orange fs-5"><i class="bi bi-bookmark"></i></a>
+                            <div class="d-flex align-items-start">
+                                @{
+                                    bool isSaved = ViewBag.SavedCourseIds != null && ((List<int>)ViewBag.SavedCourseIds).Contains(course.Id);
+                                    string heartClass = isSaved ? "bi-heart-fill text-danger" : "bi-heart text-secondary";
+                                }
+                                <a href="javascript:void(0)" onclick="toggleSaveCourse(@course.Id, this)" class="fs-4 text-decoration-none" title="Lưu khóa học">
+                                    <i class="bi @heartClass" style="transition: color 0.2s;"></i>
+                                </a>
+                            </div>
                         </div>
 
                         <div class="row text-muted small mb-3">
-                            <div class="col-md-3"><strong>💵 $@course.Price</strong></div>
-                            <div class="col-md-3">📍 @course.Location</div>
-                            <div class="col-md-3">🕒 @course.PostedAt</div>
-                            <div class="col-md-3 text-danger">⏳ Hạn đ.ký: @course.Deadline.ToString("dd/MM/yyyy")</div>
+                            <div class="col-md-3 text-success fw-bold"><i class="bi bi-cash-stack me-1"></i> $@course.Price</div>
+                            <div class="col-md-3"><i class="bi bi-geo-alt me-1"></i> @course.Location</div>
+                            <div class="col-md-3"><i class="bi bi-clock me-1"></i> @course.PostedAt</div>
+                            <div class="col-md-3 text-danger"><i class="bi bi-hourglass-split me-1"></i> Hạn đ.ký: @course.Deadline.ToString("dd/MM/yyyy")</div>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center">
@@ -223,3 +231,97 @@
         </div>
     </div>
 </form>
+
+@section Scripts {
+    <script>
+        function toggleSaveCourse(courseId, element) {
+            // Prevent multiple clicks
+            if (element.style.pointerEvents === 'none') return;
+            element.style.pointerEvents = 'none';
+
+            const icon = element.querySelector('i');
+            const isCurrentlySaved = icon.classList.contains('bi-heart-fill');
+            
+            // Optimistic UI update
+            if (isCurrentlySaved) {
+                icon.classList.remove('bi-heart-fill', 'text-danger');
+                icon.classList.add('bi-heart', 'text-secondary');
+            } else {
+                icon.classList.remove('bi-heart', 'text-secondary');
+                icon.classList.add('bi-heart-fill', 'text-danger');
+            }
+            
+            fetch(`/Course/ToggleSaveCourse?courseId=${courseId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                element.style.pointerEvents = 'auto';
+                if (data.success) {
+                    showToast(data.message, 'success');
+                } else {
+                    // Revert UI on failure
+                    if (isCurrentlySaved) {
+                        icon.classList.remove('bi-heart', 'text-secondary');
+                        icon.classList.add('bi-heart-fill', 'text-danger');
+                    } else {
+                        icon.classList.remove('bi-heart-fill', 'text-danger');
+                        icon.classList.add('bi-heart', 'text-secondary');
+                    }
+                    showToast(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                element.style.pointerEvents = 'auto';
+                // Revert UI on error
+                if (isCurrentlySaved) {
+                    icon.classList.remove('bi-heart', 'text-secondary');
+                    icon.classList.add('bi-heart-fill', 'text-danger');
+                } else {
+                    icon.classList.remove('bi-heart-fill', 'text-danger');
+                    icon.classList.add('bi-heart', 'text-secondary');
+                }
+                showToast('Có lỗi xảy ra khi lưu khóa học.', 'danger');
+            });
+        }
+        
+        function showToast(message, type) {
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+            
+            const toastId = 'toast-' + Date.now();
+            const bgClass = type === 'success' ? 'bg-success text-white' : 'bg-danger text-white';
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                  <div class="d-flex">
+                    <div class="toast-body fw-bold">
+                      ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', function () {
+                toastElement.remove();
+            });
+        }
+    </script>
+}

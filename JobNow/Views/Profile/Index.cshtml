@@ -233,6 +233,31 @@
             border-radius: 20px;
             display: inline-block;
         }
+        
+        .status-applied { background-color: #FEF3C7 !important; color: #D97706 !important; }
+        .status-reviewing { background-color: #DBEAFE !important; color: #2563EB !important; }
+        .status-interview { background-color: #f3e8ff !important; color: #9333ea !important; }
+        .status-accepted { background-color: #D1FAE5 !important; color: #059669 !important; }
+        .status-rejected { background-color: #FEE2E2 !important; color: #DC2626 !important; }
+        
+        .company-logo-img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+        }
+        .logo-placeholder {
+            width: 48px;
+            height: 48px;
+            background-color: #F3F4F6;
+            color: #9CA3AF;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
 
         /* Kỹ năng (Skills Badges - Tone Xanh Nhạt) */
         .skill-tag {
@@ -818,7 +843,103 @@
                     </div>
 
                     <!-- ====================================================================
-                         TAB 4: SETTINGS (CHỈNH SỬA HỒ SƠ)
+                         TAB 4: CÔNG VIỆC ĐÃ ỨNG TUYỂN
+                         ==================================================================== -->
+                    <div class="tab-pane fade" id="tab-applied" role="tabpanel" aria-labelledby="applied-tab">
+                        <div class="content-card">
+                            <div class="card-header-flex">
+                                <h4 class="card-header-title">
+                                    <i class="bi bi-send-check"></i>
+                                    Hồ sơ ứng tuyển của bạn
+                                </h4>
+                            </div>
+
+                            @if (!Model.Applications.Any())
+                            {
+                                <div class="text-center py-5">
+                                    <i class="bi bi-file-earmark-person text-muted opacity-50" style="font-size: 3.5rem;"></i>
+                                    <h6 class="fw-bold text-dark mt-3">Bạn chưa ứng tuyển công việc nào</h6>
+                                    <p class="text-muted mb-4">
+                                        Khám phá các cơ hội nghề nghiệp và nộp hồ sơ ngay hôm nay.
+                                    </p>
+                                    <a asp-controller="Job" asp-action="Index" class="btn btn-jn-orange">
+                                        <i class="bi bi-search me-1"></i> Tìm việc ngay
+                                    </a>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="table-responsive mt-3">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Công việc</th>
+                                                <th>Trạng thái</th>
+                                                <th>Ngày nộp</th>
+                                                <th>Cập nhật lúc</th>
+                                                <th class="text-end">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var app in Model.Applications)
+                                            {
+                                                var statusClass = app.Status switch {
+                                                    "Applied" => "status-applied",
+                                                    "Reviewing" => "status-reviewing",
+                                                    "Interview" => "status-interview",
+                                                    "Accepted" => "status-accepted",
+                                                    "Rejected" => "status-rejected",
+                                                    _ => "status-applied"
+                                                };
+
+                                                var companyName = app.Job?.Employer?.Name ?? app.Job?.CompanyName ?? "Công ty Ẩn danh";
+                                                var logoUrl = app.Job?.Employer?.LogoUrl;
+
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            @if (!string.IsNullOrEmpty(logoUrl))
+                                                            {
+                                                                <img src="@logoUrl" class="company-logo-img me-3" alt="Logo" />
+                                                            }
+                                                            else
+                                                            {
+                                                                <div class="logo-placeholder me-3">
+                                                                    <i class="bi bi-building"></i>
+                                                                </div>
+                                                            }
+                                                            <div>
+                                                                <div class="fw-bold text-dark">@(app.Job?.Title ?? "Việc làm không tồn tại")</div>
+                                                                <div class="text-muted small">@companyName</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="status-badge @statusClass">@app.Status</span>
+                                                    </td>
+                                                    <td>
+                                                        @app.AppliedAt.ToString("dd/MM/yyyy HH:mm")
+                                                    </td>
+                                                    <td>
+                                                        @app.UpdatedAt.ToString("dd/MM/yyyy HH:mm")
+                                                    </td>
+                                                    <td class="text-end">
+                                                        @if (app.JobId > 0)
+                                                        {
+                                                            <a href="/Job/Detail/@app.JobId" class="btn btn-sm btn-outline-primary" target="_blank">Xem việc làm</a>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- ====================================================================
+                         TAB 5: SETTINGS (CHỈNH SỬA HỒ SƠ)
                          ==================================================================== -->
                     <div class="tab-pane fade" id="tab-settings" role="tabpanel" aria-labelledby="settings-tab">
                         <div class="content-card">

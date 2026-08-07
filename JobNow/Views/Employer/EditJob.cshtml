@@ -129,7 +129,6 @@
             <form method="post" asp-controller="Employer" asp-action="EditJobPost" asp-route-id="@Model.Id">
                 @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="Id" />
-                <input type="hidden" asp-for="Status" />
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                 <!-- Section 1: Thông tin cơ bản -->

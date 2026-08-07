@@ -1,0 +1,67 @@
+@model IEnumerable<JobNow.Models.Conversation>
+@{
+    ViewData["Title"] = "Tin nhắn";
+    var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+}
+
+<style>
+    .chat-container { background-color: #F8FAFC; min-height: calc(100vh - 76px); padding: 30px; }
+    .chat-panel { background: #FFFFFF; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 24px; }
+    .conversation-item { padding: 15px; border-bottom: 1px solid #f1f5f9; transition: background-color 0.2s; text-decoration: none; display: block; color: inherit; }
+    .conversation-item:hover { background-color: #f8fafc; }
+    .conversation-item:last-child { border-bottom: none; }
+    .job-title { font-weight: 600; color: #1e293b; font-size: 1.1rem; }
+    .last-message { color: #64748b; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
+    .time-text { color: #94a3b8; font-size: 0.85rem; }
+</style>
+
+<div class="chat-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="chat-panel">
+                    <h4 class="fw-bold mb-4"><i class="bi bi-chat-dots me-2 text-primary"></i> Tin nhắn của bạn</h4>
+
+                    @if (!Model.Any())
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-1"></i>
+                            <h5 class="mt-3">Chưa có tin nhắn nào</h5>
+                            <p>Bạn có thể bắt đầu trò chuyện từ các đơn ứng tuyển.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var conv in Model)
+                            {
+                                var timeStr = conv.LastMessageAt.HasValue ? conv.LastMessageAt.Value.ToLocalTime().ToString("dd/MM HH:mm") : conv.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm");
+                                var roleStr = (conv.CandidateProfileId == userId) ? "Nhà tuyển dụng" : "Ứng viên";
+
+                                <a href="/Chat/Detail/@conv.Id" class="conversation-item rounded mb-2 border">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <div class="job-title"><i class="bi bi-briefcase me-2 text-secondary"></i> @conv.JobTitle</div>
+                                        <div class="time-text">@timeStr</div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="last-message">
+                                            @if (!string.IsNullOrEmpty(conv.LastMessage))
+                                            {
+                                                <span>@conv.LastMessage</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="fst-italic text-muted">Chưa có tin nhắn...</span>
+                                            }
+                                        </div>
+                                        <span class="badge bg-light text-dark border">@roleStr</span>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

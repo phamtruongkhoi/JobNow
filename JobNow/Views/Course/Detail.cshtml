@@ -1,4 +1,4 @@
-﻿@model JobNow.Models.Course
+@model JobNow.Models.Course
 
 @{
     ViewData["Title"] = Model.Title ?? "Chi tiết khóa học";
@@ -284,12 +284,28 @@
 
                 <div class="detail-card border-0 shadow-sm p-4">
                     <!-- NÚT CHUYỂN HƯỚNG RA TRANG NGOÀI -->
-                    <a href="#" onclick="alert('Đang chuyển hướng bạn sang trang đăng ký chính thức của Đối tác: @Model.ProviderName. Vui lòng đợi trong giây lát...'); return false;" class="btn-register-main mb-3">
-                        <i class="bi bi-mortarboard-fill me-2"></i> Đăng ký ngay
-                    </a>
+                    @if (!string.IsNullOrEmpty(Model.RegisterUrl))
+                    {
+                        <a href="@Model.RegisterUrl" target="_blank" rel="noopener noreferrer" onclick="trackClick(@Model.Id)" class="btn-register-main mb-3">
+                            <i class="bi bi-box-arrow-up-right me-2"></i> Đăng ký ngay
+                        </a>
+                    }
+                    else
+                    {
+                        <button disabled class="btn-register-main mb-3" style="background-color: #cbd5e1; cursor: not-allowed; color: #475569;">
+                            <i class="bi bi-x-circle-fill me-2"></i> Khóa học hiện chưa mở đăng ký
+                        </button>
+                    }
 
                     <div class="action-box">
-                        <button class="btn-outline-action"><i class="bi bi-bookmark me-1"></i> Lưu lại</button>
+                        @{
+                            bool isSaved = ViewBag.IsSaved != null && (bool)ViewBag.IsSaved;
+                            string saveBtnIcon = isSaved ? "bi-heart-fill text-danger" : "bi-heart";
+                            string saveBtnText = isSaved ? "Đã lưu" : "Lưu lại";
+                        }
+                        <button class="btn-outline-action" onclick="toggleSaveCourse(@Model.Id, this)">
+                            <i class="bi @saveBtnIcon me-1" style="transition: color 0.2s;"></i> <span>@saveBtnText</span>
+                        </button>
                         <button class="btn-outline-action"><i class="bi bi-share me-1"></i> Chia sẻ</button>
                     </div>
 
@@ -323,3 +339,114 @@
 
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function toggleSaveCourse(courseId, element) {
+            // Prevent multiple clicks
+            if (element.style.pointerEvents === 'none') return;
+            element.style.pointerEvents = 'none';
+
+            const icon = element.querySelector('i');
+            const span = element.querySelector('span');
+            const isCurrentlySaved = icon.classList.contains('bi-heart-fill');
+            
+            // Optimistic UI update
+            if (isCurrentlySaved) {
+                icon.classList.remove('bi-heart-fill', 'text-danger');
+                icon.classList.add('bi-heart');
+                span.innerText = "Lưu lại";
+            } else {
+                icon.classList.remove('bi-heart');
+                icon.classList.add('bi-heart-fill', 'text-danger');
+                span.innerText = "Đã lưu";
+            }
+            
+            fetch(`/Course/ToggleSaveCourse?courseId=${courseId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                element.style.pointerEvents = 'auto';
+                if (data.success) {
+                    showToast(data.message, 'success');
+                } else {
+                    // Revert UI on failure
+                    if (isCurrentlySaved) {
+                        icon.classList.remove('bi-heart');
+                        icon.classList.add('bi-heart-fill', 'text-danger');
+                        span.innerText = "Đã lưu";
+                    } else {
+                        icon.classList.remove('bi-heart-fill', 'text-danger');
+                        icon.classList.add('bi-heart');
+                        span.innerText = "Lưu lại";
+                    }
+                    showToast(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                element.style.pointerEvents = 'auto';
+                // Revert UI on error
+                if (isCurrentlySaved) {
+                    icon.classList.remove('bi-heart');
+                    icon.classList.add('bi-heart-fill', 'text-danger');
+                    span.innerText = "Đã lưu";
+                } else {
+                    icon.classList.remove('bi-heart-fill', 'text-danger');
+                    icon.classList.add('bi-heart');
+                    span.innerText = "Lưu lại";
+                }
+                showToast('Có lỗi xảy ra khi lưu khóa học.', 'danger');
+            });
+        }
+        
+        function showToast(message, type) {
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+            
+            const toastId = 'toast-' + Date.now();
+            const bgClass = type === 'success' ? 'bg-success text-white' : 'bg-danger text-white';
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                  <div class="d-flex">
+                    <div class="toast-body fw-bold">
+                      ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', function () {
+                toastElement.remove();
+            });
+        }
+
+        function trackClick(courseId) {
+            fetch(`/Course/TrackClick?id=${courseId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            }).catch(console.error);
+        }
+    </script>
+}

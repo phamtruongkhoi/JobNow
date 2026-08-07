@@ -231,7 +231,87 @@
                     </div>
                 </div>
 
-                <!-- Section 3: Buttons -->
+
+                <!-- Section 3: Cấu hình hiển thị (Token) -->
+                <div class="jn-panel">
+                    <div class="jn-panel-header">
+                        <h5><i class="bi bi-star text-muted"></i> Cấu hình hiển thị (Sử dụng Token)</h5>
+                    </div>
+                    <div class="jn-panel-body">
+                        <div class="row g-4">
+                            <!-- Job Duration -->
+                            <div class="col-md-6">
+                                <label class="form-label">Thời gian hiển thị</label>
+                                <div class="d-flex flex-column gap-2 mt-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" asp-for="DurationDays" value="3" id="dur3" onchange="calculateToken()">
+                                        <label class="form-check-label" for="dur3">3 ngày (Miễn phí)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" asp-for="DurationDays" value="7" id="dur7" onchange="calculateToken()">
+                                        <label class="form-check-label" for="dur7">7 ngày (+2 Tokens)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" asp-for="DurationDays" value="15" id="dur15" onchange="calculateToken()">
+                                        <label class="form-check-label" for="dur15">15 ngày (+5 Tokens)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" asp-for="DurationDays" value="30" id="dur30" onchange="calculateToken()">
+                                        <label class="form-check-label" for="dur30">30 ngày (+10 Tokens)</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Featured Badge -->
+                            <div class="col-md-6">
+                                <label class="form-label">Nhãn nổi bật</label>
+                                <div class="d-flex flex-column gap-2 mt-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" asp-for="BadgeType" value="none" id="badgeNone" onchange="calculateToken()">
+                                        <label class="form-check-label" for="badgeNone">Không (Miễn phí)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" asp-for="BadgeType" value="verified" id="badgeVerified" onchange="calculateToken()">
+                                        <label class="form-check-label" for="badgeVerified">Công ty uy tín (+5 Tokens)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" asp-for="BadgeType" value="top" id="badgeTop" onchange="calculateToken()">
+                                        <label class="form-check-label" for="badgeTop">Top Employer (+8 Tokens)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" asp-for="BadgeType" value="urgent" id="badgeUrgent" onchange="calculateToken()">
+                                        <label class="form-check-label" for="badgeUrgent">Tuyển gấp (+3 Tokens)</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Estimated Cost -->
+                            <div class="col-12 mt-4">
+                                <div class="p-3 bg-light border rounded">
+                                    <h6 class="fw-bold mb-3">Dự toán chi phí (Estimated Cost)</h6>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Phí đăng tin cơ bản</span>
+                                        <span id="costPost">1</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Phí thời hạn</span>
+                                        <span id="costDuration">0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Phí nhãn nổi bật</span>
+                                        <span id="costBadge">0</span>
+                                    </div>
+                                    <hr />
+                                    <div class="d-flex justify-content-between fw-bold text-primary" style="font-size: 1.1rem">
+                                        <span>Tổng cộng</span>
+                                        <span id="costTotal">1 Token(s)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Buttons -->
                 <div class="d-flex justify-content-end gap-3 mb-5">
                     <a asp-controller="Employer" asp-action="MyJobs" class="btn-secondary-custom">
                         Hủy
@@ -250,4 +330,39 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function calculateToken() {
+            let durationCost = 0;
+            let badgeCost = 0;
+            const postCost = 1;
+
+            // Lấy giá trị Duration
+            const dur = document.querySelector('input[name="DurationDays"]:checked');
+            if (dur) {
+                if (dur.value == "7") durationCost = 2;
+                else if (dur.value == "15") durationCost = 5;
+                else if (dur.value == "30") durationCost = 10;
+            }
+
+            // Lấy giá trị Badge
+            const badge = document.querySelector('input[name="BadgeType"]:checked');
+            if (badge) {
+                if (badge.value == "verified") badgeCost = 5;
+                else if (badge.value == "top") badgeCost = 8;
+                else if (badge.value == "urgent") badgeCost = 3;
+            }
+
+            // Update UI
+            document.getElementById("costDuration").innerText = durationCost;
+            document.getElementById("costBadge").innerText = badgeCost;
+            
+            const total = postCost + durationCost + badgeCost;
+            document.getElementById("costTotal").innerText = total + " Token(s)";
+        }
+
+        // Run once on load to initialize values
+        document.addEventListener('DOMContentLoaded', function() {
+            calculateToken();
+        });
+    </script>
 }

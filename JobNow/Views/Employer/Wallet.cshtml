@@ -1,0 +1,212 @@
+@model JobNow.ViewModels.EmployerWalletViewModel
+
+@{
+    ViewData["Title"] = "Ví Token";
+    Layout = "~/Views/Shared/_LayoutEmployer.cshtml";
+}
+
+<div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-0">Ví Token</h3>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row g-4 mb-4">
+        <!-- Balance Card -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-primary text-white">
+                <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center">
+                    <h5 class="card-title fw-semibold mb-3">Số dư Token</h5>
+                    <div class="display-3 fw-bold mb-2">
+                        <i class="bi bi-coin text-warning me-2"></i>@Model.TokenBalance
+                    </div>
+                    <p class="mb-0 text-white-50">Sử dụng Token để đăng tin tuyển dụng.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Reward Card -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center">
+                    <h5 class="card-title fw-semibold text-secondary mb-3">Nhận Token Hàng Ngày</h5>
+                    <div class="mb-3">
+                        <span class="fs-1 fw-bold text-success">+@Model.DailyFreeToken</span>
+                        <span class="text-muted ms-2">Token / ngày</span>
+                    </div>
+                    <p class="mb-3 text-muted">Lượt nhận tiếp theo: <strong>@Model.NextDailyClaim</strong></p>
+                    
+                    <form asp-controller="Employer" asp-action="ClaimDailyToken" method="post">
+                        @if (Model.CanClaimDaily)
+                        {
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill px-5 shadow-sm">
+                                <i class="bi bi-gift-fill me-2"></i> Nhận ngay
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-secondary btn-lg rounded-pill px-5 shadow-sm" disabled>
+                                <i class="bi bi-clock-fill me-2"></i> Đã nhận hôm nay
+                            </button>
+                        }
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buy Token Packages -->
+    <h4 class="fw-bold mb-3 mt-5">Mua thêm Token</h4>
+    <div class="row g-4 mb-5">
+        @if (Model.Packages != null && Model.Packages.Any())
+        {
+            foreach (var package in Model.Packages)
+            {
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 text-center hover-lift transition-all">
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold text-primary mb-3">@package.PackageName</h5>
+                            <div class="display-5 fw-bold text-dark mb-2">
+                                <i class="bi bi-coin text-warning fs-3"></i> @package.TokenAmount
+                            </div>
+                            <h4 class="text-success mb-3 fw-bold">@package.Price.ToString("N0") VNĐ</h4>
+                            <p class="text-muted mb-4" style="min-height: 48px;">@package.Description</p>
+                            <form asp-controller="Employer" asp-action="BuyToken" method="post">
+                                <input type="hidden" name="packageId" value="@package.Id" />
+                                <button type="submit" class="btn btn-primary rounded-pill px-4 w-100">
+                                    <i class="bi bi-cart-plus me-2"></i> Mua gói này
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-info border-0 rounded-4">
+                    <i class="bi bi-info-circle me-2"></i> Hiện chưa có gói Token nào đang mở bán.
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Transaction History -->
+    <h4 class="fw-bold mb-3 mt-5">Lịch sử giao dịch</h4>
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Mã GD</th>
+                            <th>Thời gian</th>
+                            <th>Loại</th>
+                            <th>Số lượng</th>
+                            <th>Số tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Mô tả</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Transactions != null && Model.Transactions.Any())
+                        {
+                            foreach (var tran in Model.Transactions)
+                            {
+                                <tr>
+                                    <td class="ps-4 text-muted">#@tran.Id</td>
+                                    <td>@tran.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        @if (tran.TransactionType == "DailyReward")
+                                        {
+                                            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">Nhận hàng ngày</span>
+                                        }
+                                        else if (tran.TransactionType == "Purchase")
+                                        {
+                                            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2">Mua gói</span>
+                                        }
+                                        else if (tran.TransactionType == "Consume")
+                                        {
+                                            <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2">Sử dụng</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-2">@tran.TransactionType</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (tran.TransactionType == "Consume")
+                                        {
+                                            <span class="text-danger fw-bold">-@tran.TokenAmount</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-success fw-bold">+@tran.TokenAmount</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @(tran.MoneyAmount.HasValue ? tran.MoneyAmount.Value.ToString("N0") + " đ" : "-")
+                                    </td>
+                                    <td>
+                                        @if (tran.Status == "Completed")
+                                        {
+                                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Hoàn thành</span>
+                                        }
+                                        else if (tran.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Đang chờ duyệt</span>
+                                        }
+                                        else if (tran.Status == "Rejected")
+                                        {
+                                            <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Đã từ chối</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@tran.Status</span>
+                                        }
+                                    </td>
+                                    <td>@tran.Description</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                                    Chưa có giao dịch nào
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+</style>

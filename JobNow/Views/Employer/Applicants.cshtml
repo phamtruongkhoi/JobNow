@@ -25,8 +25,9 @@
         font-size: 0.8rem;
         font-weight: 600;
     }
-    .status-pending { background-color: #FEF3C7; color: #D97706; }
-    .status-reviewed { background-color: #DBEAFE; color: #2563EB; }
+    .status-applied { background-color: #FEF3C7; color: #D97706; }
+    .status-reviewing { background-color: #DBEAFE; color: #2563EB; }
+    .status-interview { background-color: #f3e8ff; color: #9333ea; }
     .status-accepted { background-color: #D1FAE5; color: #059669; }
     .status-rejected { background-color: #FEE2E2; color: #DC2626; }
 </style>
@@ -86,15 +87,22 @@
                                 @foreach (var app in Model)
                                 {
                                     var statusClass = app.Status switch {
-                                        "Reviewed" => "status-reviewed",
+                                        "Applied" => "status-applied",
+                                        "Reviewing" => "status-reviewing",
+                                        "Interview" => "status-interview",
                                         "Accepted" => "status-accepted",
                                         "Rejected" => "status-rejected",
-                                        _ => "status-pending"
+                                        _ => "status-applied"
                                     };
 
                                     <tr>
                                         <td>
                                             <div class="fw-bold">@(app.Profile?.FullName ?? app.Profile?.Email ?? "Ẩn danh")</div>
+                                            <form asp-controller="Chat" asp-action="StartConversation" method="post" class="d-inline mt-1">
+                                                <input type="hidden" name="jobId" value="@app.JobId" />
+                                                <input type="hidden" name="candidateProfileId" value="@app.ProfileId" />
+                                                <button type="submit" class="btn btn-sm btn-outline-info py-0 px-2 mt-1" style="font-size: 0.8rem;"><i class="bi bi-chat-dots"></i> Chat với ứng viên</button>
+                                            </form>
                                             @if (!string.IsNullOrEmpty(app.CoverLetter))
                                             {
                                                 <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" data-bs-toggle="modal" data-bs-target="#coverLetterModal-@app.Id">
@@ -121,35 +129,25 @@
                                             }
                                         </td>
                                         <td class="text-end">
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                    Đổi trạng thái
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                                    <li>
-                                                        <form asp-action="UpdateApplicationStatus" method="post">
-                                                            @Html.AntiForgeryToken()
-                                                            <input type="hidden" name="appId" value="@app.Id" />
-                                                            <input type="hidden" name="status" value="Reviewed" />
-                                                            <button type="submit" class="dropdown-item"><i class="bi bi-eye text-primary"></i> Đã xem (Reviewed)</button>
-                                                        </form>
-                                                    </li>
-                                                    <li>
-                                                        <form asp-action="UpdateApplicationStatus" method="post">
-                                                            @Html.AntiForgeryToken()
-                                                            <input type="hidden" name="appId" value="@app.Id" />
-                                                            <input type="hidden" name="status" value="Accepted" />
-                                                            <button type="submit" class="dropdown-item"><i class="bi bi-check-circle text-success"></i> Chấp nhận (Accepted)</button>
-                                                        </form>
-                                                    </li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li>
-                                                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#rejectModal-@app.Id">
-                                                            <i class="bi bi-x-circle text-danger"></i> Từ chối (Rejected)
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            </div>
+                                            @if (app.Status == "Accepted" || app.Status == "Rejected")
+                                            {
+                                                <span class="badge bg-secondary">Quy trình tuyển dụng đã hoàn tất</span>
+                                            }
+                                            else
+                                            {
+                                                <form asp-action="UpdateApplicationStatus" method="post" class="d-flex align-items-center justify-content-end gap-2">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="appId" value="@app.Id" />
+                                                    <select name="status" class="form-select form-select-sm" style="width: auto;">
+                                                        <option value="Applied" selected="@(app.Status == "Applied")">Applied</option>
+                                                        <option value="Reviewing" selected="@(app.Status == "Reviewing")">Reviewing</option>
+                                                        <option value="Interview" selected="@(app.Status == "Interview")">Interview</option>
+                                                        <option value="Accepted" selected="@(app.Status == "Accepted")">Accepted</option>
+                                                        <option value="Rejected" selected="@(app.Status == "Rejected")">Rejected</option>
+                                                    </select>
+                                                    <button type="submit" class="btn btn-sm btn-primary">Lưu</button>
+                                                </form>
+                                            }
                                         </td>
                                     </tr>
 

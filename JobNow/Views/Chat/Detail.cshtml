@@ -1,0 +1,155 @@
+@model JobNow.ViewModels.ChatDetailViewModel
+@{
+    ViewData["Title"] = "Trò chuyện: " + Model.Conversation.JobTitle;
+}
+
+<style>
+    .chat-bg { background-color: #F8FAFC; min-height: calc(100vh - 76px); padding: 20px 0; }
+    .chat-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; height: 75vh; }
+    .chat-header { background: #fff; padding: 15px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
+    .header-user { display: flex; align-items: center; }
+    .header-user img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 15px; }
+    .header-user h5 { margin: 0; font-size: 1.1rem; font-weight: 600; }
+    .header-user small { color: #64748b; font-size: 0.85rem; }
+    
+    .chat-messages { flex: 1; padding: 20px; overflow-y: auto; background-color: #f1f5f9; display: flex; flex-direction: column; gap: 15px; }
+    
+    .msg-bubble { max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; position: relative; word-wrap: break-word; }
+    .msg-row { display: flex; width: 100%; }
+    
+    .msg-mine { justify-content: flex-end; }
+    .msg-mine .msg-bubble { background-color: #0d6efd; color: #fff; border-bottom-right-radius: 4px; }
+    
+    .msg-other { justify-content: flex-start; }
+    .msg-other .msg-bubble { background-color: #e2e8f0; color: #1e293b; border-bottom-left-radius: 4px; }
+    
+    .msg-time { font-size: 0.75rem; margin-top: 5px; opacity: 0.7; }
+    .msg-mine .msg-time { text-align: right; color: #e2e8f0; }
+    .msg-other .msg-time { text-align: left; color: #64748b; }
+
+    .chat-input-area { background: #fff; padding: 15px 20px; border-top: 1px solid #e2e8f0; }
+    .chat-form { display: flex; gap: 10px; }
+    .chat-input { flex: 1; border-radius: 20px; padding: 10px 20px; border: 1px solid #cbd5e1; outline: none; }
+    .chat-input:focus { border-color: #0d6efd; box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25); }
+    .chat-send-btn { border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; padding: 0; }
+</style>
+
+<div class="chat-bg">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-8">
+                
+                <div class="mb-3">
+                    <a href="/Chat/Index" class="text-decoration-none text-secondary"><i class="bi bi-arrow-left"></i> Quay lại Danh sách</a>
+                </div>
+
+                <div class="chat-card">
+                    <div class="chat-header">
+                        <div class="header-user">
+                            <img src="@Model.OtherUserLogo" alt="Avatar" onerror="this.src='/images/default-avatar.png';" />
+                            <div>
+                                <h5>@Model.OtherUserName</h5>
+                                <small><i class="bi bi-briefcase me-1"></i> @Model.Conversation.JobTitle</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-messages" id="chatMessages">
+                        @foreach (var msg in Model.Messages)
+                        {
+                            bool isMine = msg.SenderProfileId == Model.CurrentUserId;
+                            <div class="msg-row @(isMine ? "msg-mine" : "msg-other")" data-msg-id="@msg.Id">
+                                <div class="msg-bubble shadow-sm">
+                                    <div>@msg.Content</div>
+                                    <div class="msg-time">@msg.CreatedAt.ToLocalTime().ToString("HH:mm")</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="chat-input-area">
+                        <form asp-action="SendMessage" method="post" class="chat-form" id="chatForm">
+                            <input type="hidden" name="conversationId" value="@Model.Conversation.Id" />
+                            <input type="text" name="message" class="chat-input" placeholder="Nhập tin nhắn..." autocomplete="off" required maxlength="1000" id="msgInput" />
+                            <button type="submit" class="btn btn-primary chat-send-btn shadow-sm">
+                                <i class="bi bi-send-fill"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const convId = @Model.Conversation.Id;
+        
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Scroll to bottom on load
+        scrollToBottom();
+
+        // Prevent empty submit
+        document.getElementById('chatForm').addEventListener('submit', function(e) {
+            const input = document.getElementById('msgInput').value.trim();
+            if (!input) {
+                e.preventDefault();
+            }
+        });
+
+        // Polling function
+        setInterval(() => {
+            fetch(`/Chat/GetMessages?conversationId=${convId}`)
+                .then(res => {
+                    if(!res.ok) throw new Error("Not ok");
+                    return res.json();
+                })
+                .then(messages => {
+                    let html = '';
+                    let isScrolledToBottom = chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 10;
+                    
+                    messages.forEach(msg => {
+                        let rowClass = msg.isMine ? "msg-mine" : "msg-other";
+                        html += `
+                            <div class="msg-row ${rowClass}" data-msg-id="${msg.id}">
+                                <div class="msg-bubble shadow-sm">
+                                    <div>${escapeHtml(msg.content)}</div>
+                                    <div class="msg-time">${msg.time}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    // Only update if there's a difference in count or content (simple check is just innerHTML replace)
+                    // Better approach: only replace if new length differs, but replacing all is easiest for now.
+                    // We check if the last message id is different to avoid flickering
+                    const currentElements = chatMessages.querySelectorAll('.msg-row');
+                    const lastCurrentId = currentElements.length > 0 ? currentElements[currentElements.length-1].getAttribute('data-msg-id') : null;
+                    const lastFetchedId = messages.length > 0 ? messages[messages.length-1].id.toString() : null;
+
+                    if (lastCurrentId !== lastFetchedId) {
+                        chatMessages.innerHTML = html;
+                        if (isScrolledToBottom || messages[messages.length-1].isMine) {
+                            scrollToBottom();
+                        }
+                    }
+                })
+                .catch(err => console.error(err));
+        }, 5000);
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+         }
+    </script>
+}

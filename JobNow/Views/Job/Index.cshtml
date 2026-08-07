@@ -1,4 +1,4 @@
-﻿@model IEnumerable<JobNow.Models.Job>
+@model IEnumerable<JobNow.Models.Job>
 
 @{
     ViewData["Title"] = "Tìm Việc";
@@ -6,6 +6,77 @@
     // Lấy dữ liệu đã chọn từ Controller để giữ trạng thái
     var selectedExps = ViewBag.SelectedExperience as List<string> ?? new List<string>();
     var selectedTypes = ViewBag.SelectedJobType as List<string> ?? new List<string>();
+}
+
+@section Scripts {
+    <script>
+        function toggleSaveJob(jobId, element) {
+            const icon = element.querySelector('i');
+            
+            fetch(`/Job/ToggleSaveJob?jobId=${jobId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.isSaved) {
+                        icon.classList.remove('bi-heart', 'text-secondary');
+                        icon.classList.add('bi-heart-fill', 'text-danger');
+                    } else {
+                        icon.classList.remove('bi-heart-fill', 'text-danger');
+                        icon.classList.add('bi-heart', 'text-secondary');
+                    }
+                    
+                    // Hiển thị Toast
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Có lỗi xảy ra khi lưu công việc.', 'danger');
+            });
+        }
+        
+        function showToast(message, type) {
+            // Check if toast container exists, create if not
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(toastContainer);
+            }
+            
+            const toastId = 'toast-' + Date.now();
+            const bgClass = type === 'success' ? 'bg-success text-white' : 'bg-danger text-white';
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                  <div class="d-flex">
+                    <div class="toast-body fw-bold">
+                      ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', function () {
+                toastElement.remove();
+            });
+        }
+    </script>
 }
 
 @section Styles {
@@ -224,26 +295,34 @@
                                 <div>
                                     <h5 class="fw-bold mb-1 d-flex align-items-center">
                                         @job.Title
-                                        @if (job.IsHot)
-                                        {
-                                            <span class="badge badge-hot ms-2 px-2 py-1"><i class="bi bi-fire text-warning"></i> HOT</span>
-                                        }
-                                        @if (job.IsNew)
-                                        {
-                                            <span class="badge badge-new ms-2 px-2 py-1">MỚI</span>
-                                        }
                                     </h5>
+                                    @if(job.BadgeType == "verified") { <div class="badge bg-primary mt-1 mb-1"><i class="bi bi-star-fill"></i> Công ty uy tín</div> }
+                                    else if(job.BadgeType == "top") { <div class="badge bg-warning text-dark mt-1 mb-1"><i class="bi bi-trophy-fill"></i> Top Employer</div> }
+                                    else if(job.BadgeType == "urgent") { <div class="badge bg-danger mt-1 mb-1"><i class="bi bi-fire"></i> Tuyển gấp</div> }
                                     <p class="text-orange fw-bold small mb-0">@job.CompanyName</p>
                                 </div>
                             </div>
-                            <a href="#" class="text-orange fs-5" title="Lưu việc làm"><i class="bi bi-bookmark"></i></a>
+                            <div class="d-flex align-items-start">
+                                @{
+                                    bool isSaved = ViewBag.SavedJobIds != null && ((List<int>)ViewBag.SavedJobIds).Contains(job.Id);
+                                    string heartClass = isSaved ? "bi-heart-fill text-danger" : "bi-heart text-secondary";
+                                }
+                                <a href="javascript:void(0)" onclick="toggleSaveJob(@job.Id, this)" class="fs-4 text-decoration-none" title="Lưu việc làm">
+                                    <i class="bi @heartClass" style="transition: color 0.2s;"></i>
+                                </a>
+                            </div>
                         </div>
+
+                        @{
+                            int remainingDays = job.ExpiredAt.HasValue ? (int)Math.Ceiling((job.ExpiredAt.Value - DateTime.UtcNow).TotalDays) : 0;
+                            if (remainingDays < 0) remainingDays = 0;
+                        }
 
                         <div class="row text-muted small mb-3 g-2">
                             <div class="col-md-3 text-success fw-bold"><i class="bi bi-cash-stack me-1"></i> @(job.Salary ?? "Thỏa thuận")</div>
                             <div class="col-md-3"><i class="bi bi-geo-alt me-1"></i> @job.Location</div>
                             <div class="col-md-3"><i class="bi bi-clock me-1"></i> @job.GetTimeAgo()</div>
-                            <div class="col-md-3 text-danger"><i class="bi bi-hourglass-split me-1"></i> Hạn: @job.Deadline.ToString("dd/MM/yyyy")</div>
+                            <div class="col-md-3 text-danger"><i class="bi bi-hourglass-split me-1"></i> Còn @remainingDays ngày</div>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center mt-3">

@@ -31,12 +31,12 @@ namespace JobNow.Controllers
                 if (employer == null)
                 {
                     // Chưa có hồ sơ công ty — hiển thị dashboard trống
-                    ViewBag.TotalJobs = 0;
-                    ViewBag.ActiveJobs = 0;
-                    ViewBag.ExpiredJobs = 0;
-                    ViewBag.TotalApplicants = 0;
-                    ViewBag.NoEmployerProfile = true;
-                    return View();
+                    var emptyModel = new EmployerDashboardViewModel
+                    {
+                        TotalJobs = 0, ActiveJobs = 0, ExpiredJobs = 0, TotalApplicants = 0, NoEmployerProfile = true,
+                        TokenBalance = 0, DailyFreeToken = 0, PostJobCost = 0, NextDailyClaim = ""
+                    };
+                    return View(emptyModel);
                 }
 
                 var response = await _supabase.From<Job>()
@@ -44,21 +44,45 @@ namespace JobNow.Controllers
                     .Get();
                 var jobs = response.Models;
 
-                ViewBag.TotalJobs = jobs.Count;
-                ViewBag.ActiveJobs = jobs.Count(j => j.Status == "Published" && j.Deadline >= DateTime.Now);
-                ViewBag.ExpiredJobs = jobs.Count(j => j.Deadline < DateTime.Now);
-                ViewBag.TotalApplicants = jobs.Sum(j => j.AppliedCount);
+                var tokenResponse = await _supabase.From<EmployerToken>().Where(t => t.EmployerId == employer.Id).Get();
+                var token = tokenResponse.Models?.FirstOrDefault();
+                
+                var settingsResponse = await _supabase.From<TokenSettings>().Get();
+                var settings = settingsResponse.Models?.FirstOrDefault();
+
+                var jobIds = jobs.Select(j => j.Id).ToList();
+                var applications = new System.Collections.Generic.List<Application>();
+                if (jobIds.Any())
+                {
+                    var appsResponse = await _supabase.From<Application>().Filter("job_id", Postgrest.Constants.Operator.In, jobIds).Get();
+                    applications = appsResponse.Models ?? new System.Collections.Generic.List<Application>();
+                }
+
+                var model = new EmployerDashboardViewModel
+                {
+                    TotalJobs = jobs.Count,
+                    ActiveJobs = jobs.Count(j => j.Status == "Published" && j.Deadline >= DateTime.Now),
+                    ExpiredJobs = jobs.Count(j => j.Deadline < DateTime.Now),
+                    TotalApplicants = jobs.Sum(j => j.AppliedCount),
+                    NoEmployerProfile = false,
+                    TokenBalance = token?.Balance ?? 0,
+                    DailyFreeToken = settings?.DailyFreeToken ?? 0,
+                    PostJobCost = settings?.PostJobCost ?? 0,
+                    NextDailyClaim = token?.LastDailyClaim?.Date == DateTime.UtcNow.Date ? "Ngày mai" : "Sẵn sàng",
+                    ApplicationsReceived = applications.Count,
+                    ApplicationsReviewing = applications.Count(a => a.Status == "Reviewing"),
+                    ApplicationsInterview = applications.Count(a => a.Status == "Interview"),
+                    ApplicationsAccepted = applications.Count(a => a.Status == "Accepted"),
+                    ApplicationsRejected = applications.Count(a => a.Status == "Rejected")
+                };
+
+                return View(model);
             }
             catch (Exception ex)
             {
                 ViewBag.ErrorMessage = ex.Message;
-                ViewBag.TotalJobs = 0;
-                ViewBag.ActiveJobs = 0;
-                ViewBag.ExpiredJobs = 0;
-                ViewBag.TotalApplicants = 0;
+                return View(new EmployerDashboardViewModel());
             }
-
-            return View();
         }
 
         public async Task<IActionResult> MyJobs()
@@ -76,8 +100,18 @@ namespace JobNow.Controllers
                 var response = await _supabase.From<Job>()
                     .Where(j => j.EmployerId == employer.Id)
                     .Get();
-                // Sắp xếp bài đăng mới nhất lên đầu
                 var jobs = response.Models.OrderByDescending(j => j.CreatedAt).ToList();
+
+                var applicationsResponse = await _supabase.From<Application>().Get();
+                if (applicationsResponse.Models != null)
+                {
+                    var allApplications = applicationsResponse.Models;
+                    foreach (var job in jobs)
+                    {
+                        job.AppliedCount = allApplications.Count(a => a.JobId == job.Id);
+                    }
+                }
+
                 return View(jobs);
             }
             catch (Exception ex)
@@ -103,6 +137,93 @@ namespace JobNow.Controllers
 
             try
             {
+                var employer = await GetCurrentEmployerAsync();
+                if (employer == null) return Unauthorized();
+
+                var settingsResponse = await _supabase.From<TokenSettings>().Get();
+                var settings = settingsResponse.Models?.FirstOrDefault();
+                var postJobCost = settings?.PostJobCost ?? 0;
+                
+                int durationCost = 0;
+                if (model.DurationDays == 7) durationCost = 2;
+                else if (model.DurationDays == 15) durationCost = 5;
+                else if (model.DurationDays == 30) durationCost = 10;
+                
+                int badgeCost = 0;
+                string badgeLabel = "";
+                if (model.BadgeType == "verified") { badgeCost = 5; badgeLabel = "Công ty uy tín"; }
+                else if (model.BadgeType == "top") { badgeCost = 8; badgeLabel = "Top Employer"; }
+                else if (model.BadgeType == "urgent") { badgeCost = 3; badgeLabel = "Tuyển gấp"; }
+                
+                int totalCost = postJobCost + durationCost + badgeCost;
+
+                var tokenResponse = await _supabase.From<EmployerToken>().Where(t => t.EmployerId == employer.Id).Get();
+                var token = tokenResponse.Models?.FirstOrDefault();
+                var currentBalance = token?.Balance ?? 0;
+
+                if (currentBalance < totalCost)
+                {
+                    ModelState.AddModelError("", "Bạn không đủ Token để đăng tin.");
+                    return View("CreateJob", model);
+                }
+
+                // Deduct token
+                if (token != null)
+                {
+                    token.Balance -= totalCost;
+                    token.UpdatedAt = DateTime.UtcNow;
+                    
+                    var response = await _supabase.From<EmployerToken>()
+                        .Where(t => t.EmployerId == employer.Id)
+                        .Set(t => t.Balance, token.Balance)
+                        .Set(t => t.UpdatedAt, token.UpdatedAt)
+                        .Update();
+                        
+                    if (response.Models == null || !response.Models.Any())
+                    {
+                        await _supabase.From<EmployerToken>().Update(token);
+                    }
+                }
+                else
+                {
+                    token = new EmployerToken { EmployerId = employer.Id, Balance = 0, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+                    await _supabase.From<EmployerToken>().Insert(token);
+                }
+
+                // Log transaction
+                if (totalCost > 0)
+                {
+                    string desc = $"Đăng tin tuyển dụng ({model.DurationDays} ngày";
+                    if (!string.IsNullOrEmpty(badgeLabel)) desc += $" + {badgeLabel}";
+                    desc += ")";
+                    
+                    var transaction = new TokenTransaction
+                    {
+                        EmployerId = employer.Id,
+                        TransactionType = "Consume",
+                        TokenAmount = totalCost,
+                        Status = "Completed",
+                        Description = desc,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _supabase.From<TokenTransaction>().Insert(transaction);
+
+                    if (!string.IsNullOrEmpty(employer.ProfileId))
+                    {
+                        var notification = new Notification
+                        {
+                            ProfileId = employer.ProfileId,
+                            Title = "Sử dụng Token",
+                            Message = $"Bạn đã sử dụng {totalCost} Token để {desc.ToLower()}.",
+                            Type = "System",
+                            IsRead = false,
+                            CreatedAt = DateTime.UtcNow.ToString("O"),
+                            ActionLink = "/Employer/Wallet"
+                        };
+                        await _supabase.From<Notification>().Insert(notification);
+                    }
+                }
+
                 // Format Salary
                 string salaryStr = "Thỏa thuận";
                 if (!string.IsNullOrEmpty(model.SalaryMin) || !string.IsNullOrEmpty(model.SalaryMax))
@@ -124,14 +245,18 @@ namespace JobNow.Controllers
                     Description = model.Description,
                     Requirements = model.Requirements,
                     Benefits = model.Benefits,
-                    Status = string.IsNullOrEmpty(model.Status) ? "Draft" : model.Status,
+                    Status = "Pending",
                     PostedAt = DateTime.Now.ToString("dd/MM/yyyy"), // Giữ format cũ cho tương thích
                     CreatedAt = DateTime.UtcNow,
+                    ExpiredAt = DateTime.UtcNow.AddDays(model.DurationDays),
+                    DurationDays = model.DurationDays,
+                    BadgeType = model.BadgeType,
                     UpdatedAt = DateTime.UtcNow,
                     AppliedCount = 0,
-                    IsHot = false,
+                    IsHot = model.BadgeType == "top",
+                    IsUrgent = model.BadgeType == "urgent",
                     IsNew = true,
-                    EmployerId = (await GetCurrentEmployerAsync())?.Id
+                    EmployerId = employer.Id
                 };
 
                 await _supabase.From<Job>().Insert(job);
@@ -234,7 +359,7 @@ namespace JobNow.Controllers
                 existingJob.Description = model.Description;
                 existingJob.Requirements = model.Requirements;
                 existingJob.Benefits = model.Benefits;
-                existingJob.Status = string.IsNullOrEmpty(model.Status) ? "Draft" : model.Status;
+                existingJob.Status = "Pending";
                 existingJob.UpdatedAt = DateTime.UtcNow;
 
                 // Supabase UPDATE by primary key
@@ -299,6 +424,11 @@ namespace JobNow.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCourse(JobNow.ViewModels.CreateCourseViewModel model)
         {
+            if (!string.IsNullOrEmpty(model.RegisterUrl) && !model.RegisterUrl.StartsWith("http://") && !model.RegisterUrl.StartsWith("https://"))
+            {
+                ModelState.AddModelError("RegisterUrl", "Chỉ chấp nhận link HTTP hoặc HTTPS");
+            }
+
             if (!ModelState.IsValid) return View(model);
 
             try
@@ -318,6 +448,7 @@ namespace JobNow.Controllers
                     IsNew = true,
                     Duration = model.Duration,
                     Format = model.Format,
+                    RegisterUrl = model.RegisterUrl,
                     EmployerId = employer?.Id
                 };
 
@@ -353,7 +484,8 @@ namespace JobNow.Controllers
                     Deadline = course.Deadline,
                     Tags = course.Tags,
                     Duration = course.Duration,
-                    Format = course.Format
+                    Format = course.Format,
+                    RegisterUrl = course.RegisterUrl
                 };
 
                 return View(viewModel);
@@ -368,6 +500,11 @@ namespace JobNow.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditCourse(int id, JobNow.ViewModels.CreateCourseViewModel model)
         {
+            if (!string.IsNullOrEmpty(model.RegisterUrl) && !model.RegisterUrl.StartsWith("http://") && !model.RegisterUrl.StartsWith("https://"))
+            {
+                ModelState.AddModelError("RegisterUrl", "Chỉ chấp nhận link HTTP hoặc HTTPS");
+            }
+
             if (id != model.Id || !ModelState.IsValid) return View(model);
 
             try
@@ -387,6 +524,7 @@ namespace JobNow.Controllers
                 course.Tags = model.Tags;
                 course.Duration = model.Duration;
                 course.Format = model.Format;
+                course.RegisterUrl = model.RegisterUrl;
 
                 await _supabase.From<Course>().Update(course);
                 TempData["SuccessMessage"] = "Cập nhật khóa học thành công.";
@@ -579,16 +717,10 @@ namespace JobNow.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateApplicationStatus(int appId, string status, string? reason)
+        public async Task<IActionResult> UpdateApplicationStatus(int appId, string status)
         {
             var employer = await GetCurrentEmployerAsync();
             if (employer == null) return Unauthorized();
-
-            if (status == "Rejected" && string.IsNullOrWhiteSpace(reason))
-            {
-                TempData["ErrorMessage"] = "Cần có lý do khi từ chối ứng viên.";
-                return Redirect(Request.Headers["Referer"].ToString());
-            }
 
             try
             {
@@ -596,36 +728,65 @@ namespace JobNow.Controllers
                 var app = appResponse.Models?.FirstOrDefault();
                 if (app == null) return NotFound("Application not found.");
 
-                // Validate that the employer actually owns the job for this application
+                if (app.Status == "Accepted" || app.Status == "Rejected")
+                {
+                    TempData["ErrorMessage"] = "Không thể thay đổi trạng thái khi quy trình đã hoàn tất.";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                // Strict validation flow (Applied -> Reviewing -> Interview -> Accepted | Rejected)
+                bool isValid = false;
+                
+                // Treat "Pending" as "Applied" for backward compatibility
+                string currentStatus = app.Status == "Pending" ? "Applied" : app.Status;
+
+                if (currentStatus == status) 
+                {
+                    TempData["SuccessMessage"] = "Đã cập nhật trạng thái hồ sơ.";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                if (currentStatus == "Applied" && (status == "Reviewing" || status == "Rejected")) isValid = true;
+                if (currentStatus == "Reviewing" && (status == "Interview" || status == "Rejected")) isValid = true;
+                if (currentStatus == "Interview" && (status == "Accepted" || status == "Rejected")) isValid = true;
+
+                if (!isValid)
+                {
+                    TempData["ErrorMessage"] = "Chuyển đổi trạng thái không hợp lệ.";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
                 var job = await _supabase.From<Job>().Where(j => j.Id == app.JobId && j.EmployerId == employer.Id).Single();
                 if (job == null) return Unauthorized();
 
                 app.Status = status;
-                app.RejectionReason = status == "Rejected" ? reason : null;
                 app.UpdatedAt = DateTime.UtcNow;
 
                 await _supabase.From<Application>().Update(app);
 
-                // Create Notification for Candidate
-                if (status == "Accepted" || status == "Rejected")
+                // Notifications
+                if (status != "Applied")
                 {
-                    string actionMsg = status == "Accepted" ? "chấp nhận" : "từ chối";
-                    string extraMsg = status == "Rejected" ? $" Lý do: {reason}" : " Chúc mừng bạn đã vượt qua vòng hồ sơ.";
-                    
+                    string notifMsg = "";
+                    if (status == "Reviewing") notifMsg = $"Hồ sơ ứng tuyển cho vị trí '{job.Title}' đang được xem xét.";
+                    else if (status == "Interview") notifMsg = $"Bạn đã được mời phỏng vấn cho vị trí '{job.Title}'.";
+                    else if (status == "Accepted") notifMsg = $"Chúc mừng! Bạn đã được nhận vào vị trí '{job.Title}'.";
+                    else if (status == "Rejected") notifMsg = $"Rất tiếc, hồ sơ ứng tuyển cho vị trí '{job.Title}' chưa phù hợp.";
+
                     var notif = new Notification
                     {
                         ProfileId = app.ProfileId,
-                        Title = $"Hồ sơ {actionMsg}",
-                        Message = $"Nhà tuyển dụng {job.CompanyName} đã {actionMsg} hồ sơ ứng tuyển của bạn cho vị trí {job.Title}.{extraMsg}",
+                        Title = $"Cập nhật trạng thái ứng tuyển",
+                        Message = notifMsg,
                         Type = "Application",
                         IsRead = false,
                         CreatedAt = DateTime.UtcNow.ToString("O"),
-                        ActionLink = "/Profile"
+                        ActionLink = "/Profile/MyApplications"
                     };
                     await _supabase.From<Notification>().Insert(notif);
                 }
 
-                TempData["SuccessMessage"] = "Cập nhật trạng thái thành công.";
+                TempData["SuccessMessage"] = "Đã cập nhật trạng thái hồ sơ.";
             }
             catch (Exception ex)
             {
@@ -638,6 +799,183 @@ namespace JobNow.Controllers
         public IActionResult Settings()
         {
             return View();
+        }
+
+        public async Task<IActionResult> Wallet()
+        {
+            var employer = await GetCurrentEmployerAsync();
+            if (employer == null) return RedirectToAction("Index");
+
+            var tokenResponse = await _supabase.From<EmployerToken>().Where(t => t.EmployerId == employer.Id).Get();
+            var token = tokenResponse.Models?.FirstOrDefault();
+
+            var settingsResponse = await _supabase.From<TokenSettings>().Get();
+            var settings = settingsResponse.Models?.FirstOrDefault();
+
+            var transactionsResponse = await _supabase.From<TokenTransaction>().Where(t => t.EmployerId == employer.Id).Get();
+            var transactions = transactionsResponse.Models?.OrderByDescending(t => t.CreatedAt).ToList() ?? new List<TokenTransaction>();
+
+            var packagesResponse = await _supabase.From<TokenPackage>().Where(p => p.IsActive == true).Get();
+            var packages = packagesResponse.Models ?? new List<TokenPackage>();
+
+            bool canClaimDaily = token == null || !token.LastDailyClaim.HasValue || token.LastDailyClaim.Value.Date < DateTime.UtcNow.Date;
+
+            var model = new EmployerWalletViewModel
+            {
+                TokenBalance = token?.Balance ?? 0,
+                DailyFreeToken = settings?.DailyFreeToken ?? 0,
+                NextDailyClaim = canClaimDaily ? "Sẵn sàng" : "Ngày mai",
+                CanClaimDaily = canClaimDaily,
+                Transactions = transactions,
+                Packages = packages
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ClaimDailyToken()
+        {
+            try
+            {
+                var employer = await GetCurrentEmployerAsync();
+                if (employer == null) return Unauthorized();
+
+                var tokenResponse = await _supabase.From<EmployerToken>().Where(t => t.EmployerId == employer.Id).Get();
+                var token = tokenResponse.Models?.FirstOrDefault();
+
+                var settingsResponse = await _supabase.From<TokenSettings>().Get();
+                var settings = settingsResponse.Models?.FirstOrDefault();
+                var dailyFreeToken = settings?.DailyFreeToken ?? 0;
+
+                if (token != null && token.LastDailyClaim.HasValue && token.LastDailyClaim.Value.Date >= DateTime.UtcNow.Date)
+                {
+                    TempData["ErrorMessage"] = "Bạn đã nhận Token miễn phí hôm nay.";
+                    return RedirectToAction("Wallet");
+                }
+
+                bool updateSuccess = false;
+
+                if (token != null)
+                {
+                    token.Balance += dailyFreeToken;
+                    token.LastDailyClaim = DateTime.UtcNow;
+                    token.UpdatedAt = DateTime.UtcNow;
+                    
+                    var response = await _supabase.From<EmployerToken>().Update(token);
+                    if (response.Models != null && response.Models.Any())
+                    {
+                        updateSuccess = true;
+                    }
+                    else 
+                    {
+                        // Fallback in case Update by Id fails (e.g. Id is 0 or primary key mapping issue)
+                        var fallbackResponse = await _supabase.From<EmployerToken>()
+                            .Where(t => t.EmployerId == employer.Id)
+                            .Set(t => t.Balance, token.Balance)
+                            .Set(t => t.LastDailyClaim, token.LastDailyClaim)
+                            .Set(t => t.UpdatedAt, token.UpdatedAt)
+                            .Update();
+                            
+                        if (fallbackResponse.Models != null && fallbackResponse.Models.Any())
+                        {
+                            updateSuccess = true;
+                        }
+                    }
+                }
+                else
+                {
+                    token = new EmployerToken
+                    {
+                        EmployerId = employer.Id,
+                        Balance = dailyFreeToken,
+                        LastDailyClaim = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    var response = await _supabase.From<EmployerToken>().Insert(token);
+                    if (response.Models != null && response.Models.Any())
+                    {
+                        updateSuccess = true;
+                    }
+                }
+
+                if (updateSuccess)
+                {
+                    var transaction = new TokenTransaction
+                    {
+                        EmployerId = employer.Id,
+                        TransactionType = "DailyReward",
+                        TokenAmount = dailyFreeToken,
+                        Status = "Completed",
+                        Description = "Daily Free Token",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _supabase.From<TokenTransaction>().Insert(transaction);
+
+                    if (!string.IsNullOrEmpty(employer.ProfileId))
+                    {
+                        var notification = new Notification
+                        {
+                            ProfileId = employer.ProfileId,
+                            Title = "Nhận Token Miễn Phí",
+                            Message = $"Bạn đã nhận {dailyFreeToken} Token miễn phí hôm nay.",
+                            Type = "System",
+                            IsRead = false,
+                            CreatedAt = DateTime.UtcNow.ToString("O"),
+                            ActionLink = "/Employer/Wallet"
+                        };
+                        await _supabase.From<Notification>().Insert(notification);
+                    }
+
+                    TempData["SuccessMessage"] = $"Bạn đã nhận {dailyFreeToken} Token miễn phí hôm nay.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Có lỗi xảy ra khi cập nhật ví Token. Vui lòng thử lại.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
+            }
+
+            return RedirectToAction("Wallet");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BuyToken(int packageId)
+        {
+            var employer = await GetCurrentEmployerAsync();
+            if (employer == null) return Unauthorized();
+
+            var packageResponse = await _supabase.From<TokenPackage>().Where(p => p.Id == packageId).Get();
+            var package = packageResponse.Models?.FirstOrDefault();
+
+            if (package == null)
+            {
+                TempData["ErrorMessage"] = "Gói Token không hợp lệ.";
+                return RedirectToAction("Wallet");
+            }
+
+            var transaction = new TokenTransaction
+            {
+                EmployerId = employer.Id,
+                PackageId = packageId,
+                TransactionType = "Purchase",
+                TokenAmount = package.TokenAmount,
+                MoneyAmount = package.Price,
+                Status = "Pending",
+                Description = $"Mua gói {package.PackageName}",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _supabase.From<TokenTransaction>().Insert(transaction);
+
+            TempData["SuccessMessage"] = "Yêu cầu mua Token đã được gửi.";
+            return RedirectToAction("Wallet");
         }
     }
 }

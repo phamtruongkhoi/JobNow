@@ -1,0 +1,197 @@
+@model IEnumerable<JobNow.Models.Course>
+
+@{
+    ViewData["Title"] = "Khóa học đã lưu";
+}
+
+<style>
+    body {
+        background-color: #F8FAFC;
+    }
+
+    .job-card {
+        background-color: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .job-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .badge-tag {
+        background-color: #f1f5f9;
+        color: #475569;
+        font-weight: 500;
+        border: 1px solid #e2e8f0;
+    }
+
+    .btn-apply {
+        background-color: #ea580c;
+        color: white;
+        font-weight: 600;
+        border: none;
+        transition: background-color 0.2s;
+    }
+
+    .btn-apply:hover {
+        background-color: #c2410c;
+        color: white;
+    }
+    
+    .btn-remove {
+        background-color: #fef2f2;
+        color: #dc2626;
+        font-weight: 600;
+        border: 1px solid #fecaca;
+        transition: all 0.2s;
+    }
+    
+    .btn-remove:hover {
+        background-color: #fee2e2;
+        color: #b91c1c;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold">Khóa học đã lưu</h2>
+            <p class="text-muted">Xem lại và quản lý các khóa học bạn đã lưu.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-9 mx-auto">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5 bg-white rounded shadow-sm border">
+                    <i class="bi bi-bookmark-x text-muted" style="font-size: 4rem; opacity: 0.5;"></i>
+                    <h5 class="mt-4 fw-bold text-dark">Bạn chưa lưu khóa học nào.</h5>
+                    <p class="text-muted mb-4">Hãy khám phá các khóa học hấp dẫn và lưu lại những khóa học bạn quan tâm.</p>
+                    <a asp-controller="Course" asp-action="Index" class="btn btn-apply px-4 py-2 rounded-pill">Khám phá khóa học</a>
+                </div>
+            }
+            else
+            {
+                @foreach (var course in Model)
+                {
+                    <div class="job-card p-4 mb-3" id="saved-course-@course.Id">
+                        <div class="d-flex justify-content-between mb-3">
+                            <div class="d-flex">
+                                <img src="@course.ProviderLogo" alt="Logo" class="rounded border me-3" style="width: 56px; height: 56px; object-fit: contain; padding: 4px;">
+                                <div>
+                                    <h5 class="fw-bold mb-1 d-flex align-items-center">
+                                        @course.Title
+                                        @if (course.IsHot)
+                                        {
+                                            <span class="badge badge-hot bg-danger ms-2 px-2 py-1 text-white">HOT</span>
+                                        }
+                                        @if (course.IsNew)
+                                        {
+                                            <span class="badge badge-new bg-success ms-2 px-2 py-1 text-white">MỚI</span>
+                                        }
+                                    </h5>
+                                    <p class="text-orange fw-bold small mb-0">@course.ProviderName</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row text-muted small mb-3">
+                            <div class="col-md-3 text-success fw-bold"><i class="bi bi-cash-stack me-1"></i> $@course.Price</div>
+                            <div class="col-md-3"><i class="bi bi-geo-alt me-1"></i> @course.Location</div>
+                            <div class="col-md-3"><i class="bi bi-clock me-1"></i> @course.PostedAt</div>
+                            <div class="col-md-3 text-danger"><i class="bi bi-hourglass-split me-1"></i> Hạn đ.ký: @course.Deadline.ToString("dd/MM/yyyy")</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                            <div>
+                                <a asp-controller="Course" asp-action="Detail" asp-route-id="@course.Id" class="btn btn-apply px-4 py-2 text-decoration-none rounded-pill me-2">
+                                    Xem chi tiết
+                                </a>
+                            </div>
+                            <button class="btn btn-remove px-3 py-2 rounded-pill" onclick="removeSavedCourse(@course.Id)">
+                                <i class="bi bi-trash"></i> Bỏ lưu
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function removeSavedCourse(courseId) {
+            fetch(`/Course/ToggleSaveCourse?courseId=${courseId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && !data.isSaved) {
+                    const card = document.getElementById(`saved-course-${courseId}`);
+                    if (card) {
+                        card.style.transition = 'opacity 0.3s, transform 0.3s';
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            card.remove();
+                            // If no courses left, refresh the page to show empty state
+                            if (document.querySelectorAll('.job-card').length === 0) {
+                                window.location.reload();
+                            }
+                        }, 300);
+                    }
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Có lỗi xảy ra khi xóa khóa học đã lưu.', 'danger');
+            });
+        }
+        
+        function showToast(message, type) {
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+            
+            const toastId = 'toast-' + Date.now();
+            const bgClass = type === 'success' ? 'bg-success text-white' : 'bg-danger text-white';
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                  <div class="d-flex">
+                    <div class="toast-body fw-bold">
+                      ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', function () {
+                toastElement.remove();
+            });
+        }
+    </script>
+}

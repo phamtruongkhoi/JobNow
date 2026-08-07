@@ -1,3 +1,20 @@
+@using System.Security.Claims
+@using JobNow.Models
+@inject Supabase.Client _supabase
+@{
+    int tokenBalance = 0;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        try {
+            var employer = await _supabase.From<Employer>().Where(e => e.ProfileId == userId).Single();
+            if (employer != null) {
+                var token = await _supabase.From<EmployerToken>().Where(t => t.EmployerId == employer.Id).Single();
+                if (token != null) tokenBalance = token.Balance;
+            }
+        } catch { }
+    }
+}
 <header>
     <nav class="navbar navbar-expand-lg jn-header py-3" style="background-color: #0f172a;">
         <div class="container-fluid px-4">
@@ -33,9 +50,11 @@
                 <!-- Nhóm nút góc phải -->
                 <div class="d-flex align-items-center">
 
-
                     @if (User.Identity?.IsAuthenticated == true)
                     {
+                        <a asp-controller="Employer" asp-action="Wallet" class="btn btn-outline-warning rounded-pill px-3 me-3 fw-bold">
+                            🪙 Token: @tokenBalance
+                        </a>
                         <a asp-controller="Profile" asp-action="Index" class="text-white text-decoration-none me-3 fw-bold d-flex align-items-center">
                             <i class="bi bi-person-circle fs-5 me-1 text-warning"></i> @User.Identity.Name
                         </a>
